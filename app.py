@@ -129,19 +129,43 @@ if data:
         m2.markdown(f'<div class="metric-card"><h4>BMI 指數</h4><h2 style="color:{accent} !important;">{bmi}</h2></div>', unsafe_allow_html=True)
         m3.markdown(f'<div class="metric-card"><h4>目前隊伍</h4><h2 style="color:{accent} !important;">{current_team}</h2></div>', unsafe_allow_html=True)
 
-        # F. 圖表分析
+        # F. 體能球員卡看板 (照片與雷達圖)
         st.divider()
-        g1, g2 = st.columns(2)
+        g1, g2, g3 = st.columns([1, 1.2, 1]) # 三欄佈局：照片 | 雷達圖 | 分數
+        
         with g1:
+            st.markdown("### 👤 選手動態")
+            if photo:
+                # 顯示拍攝的照片
+                st.image(photo, use_container_width=True)
+                st.markdown(f"<p style='text-align:center;'>{current_team} 成員</p>", unsafe_allow_html=True)
+            else:
+                # 若未拍照則顯示預設圖示
+                st.markdown(f"""
+                    <div style="height:250px; background:rgba(255,255,255,0.05); 
+                                display:flex; align-items:center; justify-content:center; border-radius:15px;">
+                        <span style="font-size:5rem;">👤</span>
+                    </div>
+                """, unsafe_allow_html=True)
+
+        with g2:
+            st.markdown("### 🕸️ 均衡度分析")
             categories = ['仰臥起坐', '坐姿體前彎', '手握力', '9分鐘耐力跑']
             scores = [s1, s2, s3, s4]
-            fig = go.Figure(go.Scatterpolar(r=scores + [scores[0]], theta=categories + [categories[0]], fill='toself', line=dict(color=accent), fillcolor=f"rgba({rgb}, 0.3)"))
-            fig.update_layout(polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 5])), paper_bgcolor='rgba(0,0,0,0)', showlegend=False, height=350)
+            fig = go.Figure(go.Scatterpolar(
+                r=scores + [scores[0]], theta=categories + [categories[0]], 
+                fill='toself', line=dict(color=accent), fillcolor=f"rgba({rgb}, 0.3)"
+            ))
+            fig.update_layout(
+                polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 5], gridcolor="#444")),
+                paper_bgcolor='rgba(0,0,0,0)', showlegend=False, height=300, margin=dict(l=30, r=30, t=30, b=30)
+            )
             st.plotly_chart(fig, use_container_width=True)
-        with g2:
-            st.subheader("⚡ 分項強弱分析")
+
+        with g3:
+            st.markdown("### 📊 分數統計")
             for label, score in zip(categories, scores):
-                st.write(f"**{label}** : {score}/5")
+                st.write(f"**{label}**")
                 st.progress(score / 5)
 
         # G. 智能社團推薦與處方
@@ -193,6 +217,7 @@ if data:
                 st.dataframe(all_db[all_db["總分"] < 8][["姓名", "所屬校隊", "總分", "BMI"]])
 else:
     st.error("❌ 找不到 norms.json 數據庫！")
+
 
 
 
