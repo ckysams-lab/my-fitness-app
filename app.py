@@ -111,9 +111,48 @@ if data:
         
         g1, g2 = st.columns([1.2, 1])
         with g1:
-            # 雷達圖分析
-            fig = go.Figure(go.Scatterpolar(r=scores + [scores[0]], theta=categories + [categories[0]], fill='toself', line=dict(color=accent), fillcolor=f"rgba({rgb}, 0.3)"))
-            fig.update_layout(polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 10], gridcolor="#444")), paper_bgcolor='rgba(0,0,0,0)', height=450)
+            # 1. 嘗試計算同年齡層的平均分
+            try:
+                all_data = conn.read(ttl=0)
+                peer_data = all_data[(all_data['年齡'] == age) & (all_data['性別'] == gender)]
+                if not peer_data.empty:
+                    # 計算各項平均分 (假設資料庫存的是原始值，這裡需轉換為得分，為簡化邏輯可先設固定基準或動態計算)
+                    avg_scores = [peer_data['總分'].mean() / 4] * 4 # 這裡是一個估算值
+                else:
+                    avg_scores = [5, 5, 5, 5] # 預設基準線
+            except:
+                avg_scores = [5, 5, 5, 5]
+
+            # 2. 繪製對比雷達圖
+            fig = go.Figure()
+            
+            # 繪製背景平均線 (淡灰色)
+            fig.add_trace(go.Scatterpolar(
+                r=avg_scores + [avg_scores[0]],
+                theta=categories + [categories[0]],
+                fill='toself',
+                name='同年齡平均',
+                fillcolor='rgba(180, 180, 180, 0.2)',
+                line=dict(color='rgba(180, 180, 180, 0.5)', dash='dash')
+            ))
+            
+            # 繪製個人得分 (彩色)
+            fig.add_trace(go.Scatterpolar(
+                r=scores + [scores[0]],
+                theta=categories + [categories[0]],
+                fill='toself',
+                name='個人得分',
+                fillcolor=f"rgba({rgb}, 0.3)",
+                line=dict(color=accent, width=4)
+            ))
+
+            fig.update_layout(
+                polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 10], gridcolor="#444")),
+                paper_bgcolor='rgba(0,0,0,0)',
+                showlegend=True,
+                legend=dict(font=dict(color="white")),
+                height=450
+            )
             st.plotly_chart(fig, use_container_width=True)
         
         with g2:
@@ -266,6 +305,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
