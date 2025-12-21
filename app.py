@@ -114,26 +114,25 @@ if data:
             st.success("✅ 數據已雲端同步。")
         except: st.warning("⚠️ 雲端同步暫時不可用，請檢查 Secrets 設定。")
 
-   # --- I. 老師大盤分析 (修正縮進與重複邏輯) ---
+  # ==========================================
+    # --- I. 老師大盤分析 (嚴格密碼鎖定版) ---
+    # ==========================================
     st.write("---")
+    
+    # 建立一個獨立的容器處理後台
     with st.expander("📊 老師專屬：全校管理後台"):
         # 1. 密碼驗證介面
-        admin_password = st.text_input("🔑 請輸入管理員密碼", type="password", key="admin_pwd")
+        # 這裡您可以自定義密碼，目前設定為 "8888"
+        admin_password = st.text_input("🔑 請輸入管理員密碼", type="password", key="admin_pwd_gate")
         
-        # 設定您的專屬密碼
-        MASTER_PASSWORD = "8888" 
-        
-        if admin_password == MASTER_PASSWORD:
-            st.success("✅ 認證成功，歡迎老師！")
+        if admin_password == "8888":
+            st.success("✅ 認證成功，歡迎老師訪問管理系統。")
             
-            # 讀取雲端數據
-            try:
-                all_db = conn.read(ttl=0)
-            except:
-                all_db = pd.DataFrame()
-
+            # 只有密碼正確才執行讀取
+            all_db = conn.read(ttl=0)
+            
             if not all_db.empty:
-                # --- A. 榮譽榜 ---
+                # --- A. 榮譽榜區塊 ---
                 st.subheader("🏆 全校榮譽榜")
                 h1, h2 = st.columns(2)
                 
@@ -144,6 +143,7 @@ if data:
                 with h2:
                     st.write("🔥 **單項最強王者**")
                     try:
+                        # 抓取各項最大值的學生資料
                         b1 = all_db.loc[all_db['仰臥起坐'].idxmax()]
                         b2 = all_db.loc[all_db['體前彎'].idxmax()]
                         b3 = all_db.loc[all_db['手握力'].idxmax()]
@@ -161,126 +161,63 @@ if data:
                             st.write("🏃 **耐力王**")
                             st.info(f"{b4['姓名']} ({int(b4['9分鐘耐力跑'])}m)")
                     except:
-                        st.write("數據計算中...")
+                        st.write("⏳ 數據計算中...")
 
                 st.divider()
                 
-                # --- B. 功能分頁 ---
-                tab1, tab2, tab3 = st.tabs(["潛力新星搜尋", "現有隊員追蹤", "📊 全班數據解析"])
+                # --- B. 深度分析 Tab ---
+                tab1, tab2, tab3 = st.tabs(["🌟 潛力新星", "📋 校隊追蹤", "📊 班級大數據"])
                 
                 with tab1:
-                    st.write("🔍 **非校隊尖子：**")
+                    st.write("🔍 **非校隊前 10 名優秀學生：**")
                     non_team = all_db[all_db['所屬校隊'] == "無"]
                     if not non_team.empty:
                         st.dataframe(non_team.nlargest(10, '總分')[['姓名', '總分', 'BMI']], hide_index=True)
+                    else:
+                        st.write("目前所有優秀學生皆已入隊。")
                         
                 with tab2:
-                    team_sel = st.selectbox("請選擇隊伍：", ["足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"], key="mgr_team_sel")
+                    team_sel = st.selectbox("請選擇校隊：", ["足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"])
                     team_members = all_db[all_db['所屬校隊'] == team_sel].copy()
                     if not team_members.empty:
-                        def highlight_low(row):
+                        def style_row(row):
+                            # 總分低於 24 分標註紅色警告
                             return ['background-color: #990000; color: white'] * len(row) if row.總分 < 24 else [''] * len(row)
-                        st.dataframe(team_members[['姓名', '總分', 'BMI', '時間']].style.apply(highlight_low, axis=1), use_container_width=True)
+                        st.dataframe(team_members[['姓名', '總分', 'BMI', '時間']].style.apply(style_row, axis=1), use_container_width=True)
                     else:
                         st.warning(f"目前無 {team_sel} 紀錄")
 
                 with tab3:
-                    st.subheader("📊 班級體能大數據")
+                    st.subheader("📈 體能指標分佈")
                     d1, d2 = st.columns(2)
                     with d1:
-                        st.write("📈 **BMI 分佈**")
+                        st.write("**BMI 狀況直方圖**")
                         bmi_bins = [0, 18.5, 24, 27, 100]
-                        bmi_labels = ['體重過輕', '正常', '過重', '肥胖']
-                        plot_df = all_db.copy()
-                        plot_df['BMI分類'] = pd.cut(plot_df['BMI'], bins=bmi_bins, labels=bmi_labels)
-                        st.bar_chart(plot_df['BMI分類'].value_counts())
+                        bmi_labels = ['過輕', '正常', '過重', '肥胖']
+                        all_db['BMI分類'] = pd.cut(all_db['BMI'], bins=bmi_bins, labels=bmi_labels)
+                        st.bar_chart(all_db['BMI分類'].value_counts())
                     with d2:
-                        st.write("🎯 **等級分佈**")
-                        def get_rank_str(s):
+                        st.write("**等級比例圖**")
+                        def get_rank(s):
                             if s >= 32: return "🥇 卓越"
                             if s >= 24: return "🥈 優良"
                             return "⚪ 需加強"
-                        plot_df['等級'] = plot_df['總分'].apply(get_rank_str)
-                        st.bar_chart(plot_df['等級'].value_counts())
+                        all_db['等級'] = all_db['總分'].apply(get_rank)
+                        st.bar_chart(all_db['等級'].value_counts())
                     
+                    # 匯出功能
                     csv_data = all_db.to_csv(index=False).encode('utf-8-sig')
-                    st.download_button("💾 下載全校期末總表 (CSV)", csv_data, f"Fitness_Summary_{datetime.now().year}.csv", "text/csv")
+                    st.download_button("💾 下載全校期末總表 (CSV)", csv_data, f"Fitness_Final_{datetime.now().year}.csv", "text/csv")
             else:
-                st.info("尚無學生紀錄")
+                st.info("目前資料庫為空，請開始輸入學生數據。")
         
         elif admin_password == "":
-            st.info("💡 請輸入老師專用密碼以查閱後台數據。")
+            st.info("🔐 此區塊受保護，請輸入管理員密碼查閱全校數據。")
         else:
-            st.error("❌ 密碼錯誤，拒絕存取機密數據。")
-        all_db = conn.read(ttl=0)
-        if not all_db.empty:
-            st.subheader("🏆 全校榮譽榜")
-            h1, h2 = st.columns(2)
-            with h1:
-                st.write("✨ **總分 Top 5**")
-                st.table(all_db.nlargest(5, '總分')[['姓名', '總分', '所屬校隊']])
-            with h2:
-                st.write("🔥 **單項最強王者**")
-                try:
-                    b1 = all_db.loc[all_db['仰臥起坐'].idxmax()]
-                    b2 = all_db.loc[all_db['體前彎'].idxmax()]
-                    b3 = all_db.loc[all_db['手握力'].idxmax()]
-                    b4 = all_db.loc[all_db['9分鐘耐力跑'].idxmax()]
-                    
-                    c1, c2 = st.columns(2)
-                    with c1:
-                        st.write("🧱 **核心王**")
-                        st.info(f"{b1['姓名']} ({int(b1['仰臥起坐'])}次)")
-                        st.write("💪 **力量王**")
-                        st.info(f"{b3['姓名']} ({b3['手握力']}kg)")
-                    with c2:
-                        st.write("🤸 **柔軟王**")
-                        st.info(f"{b2['姓名']} ({int(b2['體前彎'])}cm)")
-                        st.write("🏃 **耐力王**")
-                        st.info(f"{b4['姓名']} ({int(b4['9分鐘耐力跑'])}m)")
-                except: st.write("數據處理中...")
+            st.error("❌ 密碼錯誤！存取請求已記錄。")
 
-            st.divider()
-            tab1, tab2, tab3 = st.tabs(["潛力新星搜尋", "現有隊員追蹤", "📊 全班數據解析"])
-            
-            with tab1:
-                st.write("🔍 **非校隊尖子：**")
-                non_team = all_db[all_db['所屬校隊'] == "無"]
-                if not non_team.empty:
-                    st.dataframe(non_team.nlargest(10, '總分')[['姓名', '總分', 'BMI']], hide_index=True)
-                    
-            with tab2:
-                team_sel = st.selectbox("請選擇隊伍：", ["足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"], key="mgr_team_sel")
-                team_members = all_db[all_db['所屬校隊'] == team_sel].copy()
-                if not team_members.empty:
-                    def highlight_low(row):
-                        return ['background-color: #990000; color: white'] * len(row) if row.總分 < 24 else [''] * len(row)
-                    st.dataframe(team_members[['姓名', '總分', 'BMI', '時間']].style.apply(highlight_low, axis=1), use_container_width=True)
-                else: st.warning(f"目前無 {team_sel} 紀錄")
-
-            with tab3:
-                st.subheader("📊 班級體能大數據")
-                d1, d2 = st.columns(2)
-                with d1:
-                    st.write("📈 **BMI 分佈**")
-                    bmi_bins = [0, 18.5, 24, 27, 100]
-                    bmi_labels = ['體重過輕', '正常', '過重', '肥胖']
-                    plot_df = all_db.copy()
-                    plot_df['BMI分類'] = pd.cut(plot_df['BMI'], bins=bmi_bins, labels=bmi_labels)
-                    st.bar_chart(plot_df['BMI分類'].value_counts())
-                with d2:
-                    st.write("🎯 **等級分佈**")
-                    def get_rank_str(s):
-                        if s >= 32: return "🥇 卓越"
-                        if s >= 24: return "🥈 優良"
-                        return "⚪ 需加強"
-                    plot_df['等級'] = plot_df['總分'].apply(get_rank_str)
-                    st.bar_chart(plot_df['等級'].value_counts())
-                
-                csv_data = all_db.to_csv(index=False).encode('utf-8-sig')
-                st.download_button("💾 下載全校期末總表 (CSV)", csv_data, f"Fitness_{datetime.now().year}.csv", "text/csv")
-        else: st.info("尚無學生紀錄")
-else: st.error("❌ 找不到數據庫 (norms.json)！")
+else:
+    st.error("❌ 找不到評分數據庫 (norms.json)，請確認檔案路徑！")
 
 
 
