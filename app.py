@@ -56,7 +56,7 @@ if data:
         v3 = v_col3.number_input("手握力 (kg)", 0.0, 100.0, 10.0)
         v4 = v_col4.number_input("9分鐘耐力跑 (米)", 0)
         
-        submitted = st.form_submit_button("🌟 生成 40 分制個人戰報並同步雲端")
+        submitted = st.form_submit_button("🌟 生成個人戰報")
 
     # 4. 提交後的處理
     if submitted:
@@ -214,6 +214,7 @@ if data:
                 st.bar_chart(all_db.groupby("所屬校隊")["總分"].mean())
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
