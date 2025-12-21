@@ -60,41 +60,64 @@ if data:
         s3 = get_score(v3, gender, age, "grip_strength", data) 
         s4 = get_score(v4, gender, age, "run_9min", data)
         total = s1 + s2 + s3 + s4
-            
-        # B. 新增：雷達圖繪製區塊
-        st.subheader("📊 體適能均衡度分析")
-        
-        categories = ['仰臥起坐', '坐姿體前彎', '手握力', '9分鐘耐力跑']
-        scores = [s1, s2, s3, s4]
-        
-        categories_closed = categories + [categories[0]]
-        scores_closed = scores + [scores[0]]
 
-        fig = go.Figure()
-        fig.add_trace(go.Scatterpolar(
-            r=scores_closed,
-            theta=categories_closed,
-            fill='toself',
-            name='本次測量',
-            line_color='#1f77b4',
-            fillcolor='rgba(31, 119, 180, 0.3)'
-        ))
+        # B. 根據分數決定主題色
+        if total >= 15:
+            rank_color = "#FFD700"  # 金色
+            rank_label = "🥇 卓越 (Gold)"
+        elif total >= 10:
+            rank_color = "#C0C0C0"  # 銀色
+            rank_label = "🥈 優良 (Silver)"
+        elif total >= 8:
+            rank_color = "#CD7F32"  # 銅色
+            rank_label = "🥉 尚可 (Bronze)"
+        else:
+            rank_color = "#E74C3C"  # 紅色
+            rank_label = "⚪ 待加強"
 
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(visible=True, range=[0, 5])
-            ),
-            showlegend=False,
-            height=400
-        )
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # C. 顯示總分結果
+        # C. 專業儀表板抬頭
+        st.markdown(f"""
+            <div style="background-color:{rank_color}; padding:20px; border-radius:10px; text-align:center;">
+                <h1 style="color:white; margin:0;">{name} 的體能戰報</h1>
+                <h2 style="color:white; margin:0;">{rank_label}</h2>
+            </div>
+        """, unsafe_allow_html=True)
+
+        # D. 核心數據大指標
+        st.write("")
+        m_col1, m_col2, m_col3 = st.columns(3)
+        m_col1.metric("總得分", f"{total} / 20")
+        m_col2.metric("BMI 狀態", bmi, delta="正常" if 18.5 <= bmi <= 24 else "異常", delta_color="normal" if 18.5 <= bmi <= 24 else "inverse")
+        m_col3.metric("評測等級", rank_label.split(" ")[1])
+
+        # E. 雷達圖與進度條分析 (左右並列)
         st.divider()
-        st.header(f"您的總分：{total} / 20 分")
-        if total >= 15: st.success("🥇 獲得金獎！表現卓越！")
-        elif total >= 9: st.warning("🥉 獲得銅獎！還有進步空間！")
-        st.info(f"📊 BMI 指數: {bmi}")
+        g_col1, g_col2 = st.columns([1, 1])
+
+        with g_col1:
+            st.subheader("🕸️ 體能雷達圖")
+            categories = ['仰臥起坐', '坐姿體前彎', '手握力', '耐力跑']
+            scores = [s1, s2, s3, s4]
+            categories_closed = categories + [categories[0]]
+            scores_closed = scores + [scores[0]]
+            
+            fig = go.Figure()
+            fig.add_trace(go.Scatterpolar(
+                r=scores_closed, theta=categories_closed, fill='toself',
+                line_color=rank_color, fillcolor=rank_color, opacity=0.6
+            ))
+            fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), showlegend=False, height=350, margin=dict(l=40, r=40, t=20, b=20))
+            st.plotly_chart(fig, use_container_width=True)
+
+        with g_col2:
+            st.subheader("📊 分項強弱分析")
+            for label, score in zip(categories, scores):
+                st.write(f"**{label}** ({score}/5)")
+                st.progress(score / 5) # 自動生成運動感進度條
+
+        # F. 運動建議與同步邏輯 (其餘部分保持不變)
+        st.divider()
+        # ... (原本的自動同步與下載代碼) ...
 
         # D. 運動建議
         if s3 <= 2:
@@ -128,6 +151,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
+
 
 
 
