@@ -69,7 +69,7 @@ if data:
         categories = ['仰臥起坐', '坐姿體前彎', '手握力', '9分鐘耐力跑']
         scores = [s1, s2, s3, s4]
 
-        # 徽章與顏色邏輯
+        # 徽章顏色邏輯
         if total >= 32: 
             rgb, rank_label = "255, 215, 0", "🥇 卓越 (GOLD ELITE)"
         elif total >= 24: 
@@ -81,12 +81,27 @@ if data:
 
         accent = f"rgb({rgb})"
         
-        # 動態樣式
-        st.markdown(f"<style>.stApp {{ background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%); color: white !important; }} .header-box {{ background-color: {accent}; padding: 20px; border-radius: 15px; text-align: center; color: black !important; margin-bottom: 25px; }} .metric-card {{ background: rgba(255,255,255,0.05); border-left: 5px solid {accent}; padding: 15px; border-radius: 10px; margin-bottom:10px; }} h1, h2, h3, h4, p, span, label, div {{ color: white !important; }} .header-box h1, .header-box h2 {{ color: black !important; }}</style>", unsafe_allow_html=True)
+        # 動態 CSS 樣式
+        st.markdown(f"""
+            <style>
+            .stApp {{ background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%); color: white !important; }}
+            .header-box {{ background-color: {accent}; padding: 25px; border-radius: 15px; text-align: center; margin-bottom: 25px; }}
+            .badge {{ background: white; color: black !important; padding: 8px 25px; border-radius: 50px; font-weight: bold; border: 2px solid #333; display: inline-block; margin-top: 10px; }}
+            .metric-card {{ background: rgba(255,255,255,0.05); border-left: 5px solid {accent}; padding: 15px; border-radius: 10px; }}
+            h1, h2, h3, h4, p, span, label, div {{ color: white !important; }}
+            .header-box h1 {{ color: black !important; margin: 0; }}
+            </style>
+        """, unsafe_allow_html=True)
 
-        st.markdown(f'<div class="header-box"><h1>{name} 體能戰報</h1><h2>{rank_label}</h2></div>', unsafe_allow_html=True)
+        # 戰報頭部與徽章
+        st.markdown(f"""
+            <div class="header-box">
+                <h1>{name} 體能戰報</h1>
+                <div class="badge">{rank_label}</div>
+            </div>
+        """, unsafe_allow_html=True)
         
-        # 顯示主要數據
+        # 顯示三大核心數據
         m1, m2, m3 = st.columns(3)
         m1.markdown(f'<div class="metric-card"><h4>總得分</h4><h2 style="color:{accent} !important;">{total} / 40</h2></div>', unsafe_allow_html=True)
         m2.markdown(f'<div class="metric-card"><h4>BMI 指數</h4><h2 style="color:{accent} !important;">{bmi}</h2></div>', unsafe_allow_html=True)
@@ -96,18 +111,17 @@ if data:
         
         g1, g2 = st.columns([1.2, 1])
         with g1:
-            # 雷達圖
+            # 雷達圖分析
             fig = go.Figure(go.Scatterpolar(r=scores + [scores[0]], theta=categories + [categories[0]], fill='toself', line=dict(color=accent), fillcolor=f"rgba({rgb}, 0.3)"))
             fig.update_layout(polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 10], gridcolor="#444")), paper_bgcolor='rgba(0,0,0,0)', height=450)
             st.plotly_chart(fig, use_container_width=True)
         
         with g2:
             st.markdown("### 📊 單項評分詳情")
-            # 這裡把每一項的分數單獨列出來
-            st.markdown(f"🪑 仰臥起坐：**{s1}** / 10")
-            st.markdown(f"🤸 坐姿體前彎：**{s2}** / 10")
-            st.markdown(f"💪 手握力：**{s3}** / 10")
-            st.markdown(f"🏃 9分鐘耐力跑：**{s4}** / 10")
+            st.markdown(f"🪑 仰臥起坐： **{s1}** / 10 分")
+            st.markdown(f"🤸 坐姿體前彎： **{s2}** / 10 分")
+            st.markdown(f"💪 手握力： **{s3}** / 10 分")
+            st.markdown(f"🏃 9分鐘跑： **{s4}** / 10 分")
             
             st.markdown("---")
             st.markdown("### 🤖 AI 智能助教評語")
@@ -119,24 +133,24 @@ if data:
                 comment = f"加油 {name}！專注於強項發展，你能做得更好。"
             
             best_item = categories[scores.index(max(scores))]
-            st.info(f"{comment}\n\n你最突出的項目是：**{best_item}**")
+            st.info(f"{comment}\n\n你表現最突出的項目是：**{best_item}**")
 
-        # 雲端同步
+        # 雲端資料同步
         try:
             res_df = pd.DataFrame([{"時間": datetime.now().strftime("%Y-%m-%d %H:%M"), "姓名": name, "性別": gender, "年齡": age, "所屬校隊": current_team, "BMI": bmi, "總分": total, "仰臥起坐": v1, "體前彎": v2, "手握力": v3, "9分鐘耐力跑": v4}])
             existing_data = conn.read(ttl=0)
             updated_df = pd.concat([existing_data, res_df], ignore_index=True)
             conn.update(data=updated_df)
-            st.success("✅ 數據已成功同步至雲端。")
+            st.success("✅ 數據已雲端同步。")
         except: 
-            st.warning("⚠️ 雲端同步暫時關閉。")
+            st.warning("⚠️ 同步失敗，請確認 Secrets 設定。")
 
-    # --- 老師專屬區塊 (密碼鎖定版) ---
+    # --- 老師專屬區塊 (嚴格密碼鎖) ---
     st.write("---")
     with st.expander("📊 老師專屬：全校管理後台"):
-        admin_password = st.text_input("🔑 請輸入管理員密碼", type="password", key="admin_pwd_final")
+        pwd = st.text_input("🔑 請輸入管理員密碼", type="password", key="admin_key")
         
-        if admin_password == "8888":
+        if pwd == "8888":
             st.success("✅ 歡迎老師登入系統")
             all_db = conn.read(ttl=0)
             
@@ -164,14 +178,14 @@ if data:
                     except: st.write("數據處理中...")
 
                 st.divider()
-                tab1, tab2, tab3 = st.tabs(["潛力新星", "校隊追蹤", "數據解析"])
-                with tab1:
+                t1, t2, t3 = st.tabs(["潛力新星", "校隊追蹤", "數據解析"])
+                with t1:
+                    st.write("🔍 非校隊優秀學生：")
                     st.dataframe(all_db[all_db['所屬校隊'] == "無"].nlargest(10, '總分')[['姓名', '總分', 'BMI']], hide_index=True)
-                with tab2:
-                    team_sel = st.selectbox("選擇校隊", ["足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"])
-                    team_members = all_db[all_db['所屬校隊'] == team_sel]
-                    st.dataframe(team_members[['姓名', '總分', '時間']], use_container_width=True)
-                with tab3:
+                with t2:
+                    team = st.selectbox("選擇校隊", ["足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"])
+                    st.dataframe(all_db[all_db['所屬校隊'] == team][['姓名', '總分', '時間']], use_container_width=True)
+                with t3:
                     st.write("📊 等級分佈")
                     def get_rank_simple(s):
                         if s >= 32: return "🥇 卓越"
@@ -179,15 +193,15 @@ if data:
                         return "⚪ 需加強"
                     all_db['等級'] = all_db['總分'].apply(get_rank_simple)
                     st.bar_chart(all_db['等級'].value_counts())
-                    
-                csv_data = all_db.to_csv(index=False).encode('utf-8-sig')
-                st.download_button("💾 下載期末 CSV", csv_data, "Fitness_Report.csv")
+                
+                csv = all_db.to_csv(index=False).encode('utf-8-sig')
+                st.download_button("💾 下載全校總表 (CSV)", csv, "Fitness_Report.csv", "text/csv")
             else:
-                st.info("尚無數據")
-        elif admin_password == "":
-            st.info("💡 請輸入密碼以開啟後台。")
+                st.info("尚無學生紀錄")
+        elif pwd == "":
+            st.info("💡 請輸入密碼以解鎖管理功能。")
         else:
-            st.error("❌ 密碼錯誤")
+            st.error("❌ 密碼錯誤，拒絕訪問。")
 
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
