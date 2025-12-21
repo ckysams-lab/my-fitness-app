@@ -133,17 +133,38 @@ if data:
                 st.write(f"**{label}** ({score}/10)")
                 st.progress(score / 10)
 
-        # G. 運動處方
+        # G. 運動處方 (修正為多項併列顯示)
         st.divider()
-        st.subheader("🎯 專屬建議")
-        rec1, rec2 = st.columns(2)
-        with rec1:
-            if s4 >= 8: st.success("⚽ **推薦：** 足球/田徑 (心肺能力優異)")
-            elif s3 >= 8: st.success("🎾 **推薦：** 壁球/乒乓球 (爆發力優異)")
-            else: st.info("🏃 **建議：** 每天增加 15 分鐘快走或慢跑。")
-        with rec2:
-            if s2 <= 4: st.warning("🧘 **伸展：** 每日睡前練習坐姿體前彎伸展。")
-            if s1 <= 4: st.warning("🧱 **核心：** 嘗試每日進行 30 秒棒式支撐。")
+        st.subheader("🎯 專屬運動處方與社團推薦")
+        rec_col1, rec_col2 = st.columns(2)
+        
+        with rec_col1:
+            st.write("🏆 **基於你的優勢推薦：**")
+            # 檢查每一項是否優異，優異者皆顯示推薦
+            has_rec = False
+            if s1 >= 8: 
+                st.success("🏀 **推薦：籃球隊 / 體操隊** (核心穩定性極佳)")
+                has_rec = True
+            if s2 >= 8: 
+                st.success("🧘 **推薦：舞蹈隊 / 瑜珈社** (柔軟度表現卓越)")
+                has_rec = True
+            if s3 >= 8: 
+                st.success("🎾 **推薦：壁球 / 乒乓球 / 羽球** (上肢爆發力強)")
+                has_rec = True
+            if s4 >= 8: 
+                st.success("⚽ **推薦：足球隊 / 田徑隊** (心肺耐力非常優秀)")
+                has_rec = True
+            
+            if not has_rec:
+                st.info("🏃 **建議：** 目前各項均衡發展，建議多嘗試不同社團找出興趣！")
+                
+        with rec_col2:
+            st.write("🛠️ **基於你的短板建議：**")
+            # 檢查每一項是否需要加強
+            if s1 <= 4: st.warning("🧱 **核心加強：** 每天練習 30 秒棒式或捲腹。")
+            if s2 <= 4: st.warning("🧘 **伸展加強：** 每天睡前進行 5 分鐘坐姿體前彎。")
+            if s3 <= 4: st.warning("💪 **力量加強：** 練習吊單槓或使用握力器訓練。")
+            if s4 <= 4: st.warning("🏃 **耐力加強：** 每週進行兩次 10 分鐘慢跑。")
 
         # H. 雲端同步
         try:
@@ -193,6 +214,7 @@ if data:
                 st.bar_chart(all_db.groupby("所屬校隊")["總分"].mean())
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
