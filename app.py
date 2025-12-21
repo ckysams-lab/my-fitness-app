@@ -126,30 +126,12 @@ if data:
         with g2:
             st.markdown(f"### ⚡ 專項分析")
             for label, score in zip(categories, scores):
-                # 計算百分比
-                pct = (score / 5) * 100
+                # 顯示標籤與分數
+                st.write(f"**{label}** : {score}/5")
+                # 使用原生進度條，它現在會被上面的 CSS 強制染成獎項顏色
+                st.progress(score / 5)
                 
-                # 使用 HTML 建立自定義霓虹進度條
-                st.markdown(f"""
-                    <div style="margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <span style="font-weight: bold; color: white;">{label}</span>
-                            <span style="color: {accent_color}; font-weight: bold;">{score} / 5</span>
-                        </div>
-                        <div style="background-color: rgba(255,255,255,0.1); border-radius: 10px; height: 10px; width: 100%;">
-                            <div style="background-color: {accent_color}; 
-                                        width: {pct}%; 
-                                        height: 100%; 
-                                        border-radius: 10px; 
-                                        box-shadow: 0 0 10px {accent_color}AA;">
-                            </div>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-
-        # F. 運動建議與同步邏輯 (其餘部分保持不變)
         st.divider()
-        # ... (原本的自動同步與下載代碼) ...
 
         # D. 運動建議
         if s3 <= 2:
@@ -183,6 +165,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
+
 
 
 
