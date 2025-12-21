@@ -175,34 +175,63 @@ if data:
         except:
             st.warning("⚠️ 雲端同步失敗。")
 
-        # I. 老師大盤分析
-        st.write("")
-        with st.expander("📊 老師專屬：校隊管理與英雄榜"):
-            all_db = conn.read(ttl=0)
-            if not all_db.empty:
-                h1, h2 = st.columns(2)
-                with h1:
-                    st.write("🏆 **總分榮譽榜 (Top 5)**")
-                    st.table(all_db.nlargest(5, '總分')[['姓名', '總分', '所屬校隊']])
-                with h2:
-                    st.write("🔥 **單項最強王者**")
-                    b1, b2 = all_db.loc[all_db['仰臥起坐'].idxmax()], all_db.loc[all_db['體前彎'].idxmax()]
-                    b3, b4 = all_db.loc[all_db['手握力'].idxmax()], all_db.loc[all_db['9分鐘耐力跑'].idxmax()]
-                    st.write(f"🧱 核心王：{b1['姓名']} | 🤸 柔軟王：{b2['姓名']}")
-                    st.write(f"💪 力量王：{b3['姓名']} | 🏃 耐力王：{b4['姓名']}")
-                
-                # 校隊選拔篩選器
-                st.divider()
-                st.write("🕵️ **校隊潛力新星 (非校隊中數據優異者)**")
+        # ---------------------------------------------------------
+    # I. 老師大盤分析 (獨立於提交按鈕外，解決彈走問題)
+    # ---------------------------------------------------------
+    st.write("---")
+    with st.expander("📊 老師專屬：全校管理後台 (不需點擊按鈕即可查看)"):
+        all_db = conn.read(ttl=0)
+        if not all_db.empty:
+            # 1. 英雄榜區塊
+            st.subheader("🏆 全校榮譽榜")
+            h1, h2 = st.columns(2)
+            with h1:
+                st.write("✨ **總分 Top 5**")
+                st.table(all_db.nlargest(5, '總分')[['姓名', '總分', '所屬校隊']])
+            with h2:
+                st.write("🔥 **單項最強王者**")
+                # 預防數據報錯，使用 try 抓取
+                try:
+                    b1 = all_db.loc[all_db['仰臥起坐'].idxmax()]
+                    b2 = all_db.loc[all_db['體前彎'].idxmax()]
+                    b3 = all_db.loc[all_db['手握力'].idxmax()]
+                    b4 = all_db.loc[all_db['9分鐘耐力跑'].idxmax()]
+                    st.write(f"🧱 核心王：{b1['姓名']} ({int(b1['仰臥起坐'])}次)")
+                    st.write(f"🤸 柔軟王：{b2['姓名']} ({int(b2['體前彎'])}cm)")
+                    st.write(f"💪 力量王：{b3['姓名']} ({b3['手握力']}kg)")
+                    st.write(f"🏃 耐力王：{b4['姓名']} ({int(b4['9分鐘耐力跑'])}m)")
+                except:
+                    st.write("計算中...")
+
+            # 2. 校隊選拔與監控
+            st.divider()
+            st.subheader("🕵️ 校隊人才與成員監控")
+            
+            # 使用 tab 讓介面更整齊
+            tab1, tab2 = st.tabs(["潛力新星搜尋", "現有隊員追蹤"])
+            
+            with tab1:
+                st.write("非校隊成員中，各項前 20% 的尖子：")
                 non_team = all_db[all_db['所屬校隊'] == "無"]
-                st.dataframe(non_team.nlargest(5, '總分')[['姓名', '總分', 'BMI']], hide_index=True)
-                
-                st.write("📋 **校隊成員狀態監控**")
-                team_sel = st.selectbox("切換校隊", ["足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"])
-                st.dataframe(all_db[all_db['所屬校隊'] == team_sel][['姓名', '總分', '時間']], hide_index=True)
+                if not non_team.empty:
+                    st.dataframe(non_team.nlargest(10, '總分')[['姓名', '總分', 'BMI', '時間']], hide_index=True)
+                else:
+                    st.info("目前所有學生皆已加入校隊。")
+                    
+            with tab2:
+                team_sel = st.selectbox("請選擇要查看的隊伍：", ["足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"], key="mgr_team_sel")
+                team_members = all_db[all_db['所屬校隊'] == team_sel]
+                if not team_members.empty:
+                    st.write(f"目前 {team_sel} 共有 {len(team_members)} 名隊員：")
+                    st.dataframe(team_members[['姓名', '總分', 'BMI', '時間']].sort_values('總分', ascending=False), hide_index=True)
+                else:
+                    st.warning(f"資料庫中暫無 {team_sel} 的隊員紀錄。")
+        else:
+            st.info("目前雲端資料庫尚無任何紀錄。")
 
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
