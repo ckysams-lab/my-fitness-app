@@ -49,7 +49,7 @@ if data:
         v3 = st.number_input("手握力 (kg)", 0.0, 50.0, 15.0)
         v4 = st.number_input("9分鐘耐力跑 (米)", 0)
         
-        submitted = st.form_submit_button("🌟 計算並同步數據")
+        submitted = st.form_submit_button("🌟 計算總成績")
 
     # 4. 提交後的處理 (按鈕按下後才執行以下所有內容)
     if submitted:
@@ -128,5 +128,6 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
+
 
 
