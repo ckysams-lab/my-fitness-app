@@ -124,7 +124,37 @@ if data:
             st.markdown(f"🏃 9分鐘跑： **{s4}** / 10 分")
             
             st.markdown("---")
-            st.markdown("### 🎯 運動專長偵測 (AI 校隊推薦)")
+            st.markdown("### 🤖 AI 智能深度分析")
+
+            # 1. 核心邏輯分析
+            advice_list = []
+            
+            # 仰臥起坐 (核心)
+            if s1 >= 8: advice_list.append("🟢 **核心穩定性：** 表現極其優異，這有助於你在任何運動中保持身體平衡。")
+            elif s1 >= 4: advice_list.append("🟡 **核心穩定性：** 表現尚可，建議增加每日仰臥起坐次數，提升腹部耐力。")
+            else: advice_list.append("🔴 **核心穩定性：** 較為薄弱，這可能會影響你的坐姿與體育活動中的發力，建議從基礎平板支撐練習。")
+
+            # 體前彎 (柔軟度)
+            if s2 >= 8: advice_list.append("🟢 **身體柔軟度：** 關節活動度非常好，這能有效減少運動傷害。")
+            elif s2 < 4: advice_list.append("🔴 **身體柔軟度：** 肌肉過於緊繃，建議運動後加強拉伸，以免在劇烈運動中拉傷。")
+
+            # 耐力跑 (心肺)
+            if s4 >= 8: advice_list.append("🟢 **心肺功能：** 你的心肺耐力是你的最強引擎，非常適合長距離運動。")
+            elif s4 < 4: advice_list.append("🔴 **心肺功能：** 體能消耗較快，建議增加慢跑頻率，循序漸進提升心肺效率。")
+
+            # BMI 建議
+            if bmi > 24: bmi_advice = "建議注意飲食均衡，並配合更多有氧運動以減輕關節負擔。"
+            elif bmi < 18.5: bmi_advice = "體重較輕，建議加強蛋白質攝取並配合阻力訓練增加肌肉量。"
+            else: bmi_advice = "體位指標非常標準，請繼續保持良好的生活習慣。"
+
+            # 顯示深度評語
+            st.info(f"**【總結評論】**\n\n{name} 同學，{bmi_advice}")
+            
+            for adv in advice_list:
+                st.write(adv)
+
+            st.markdown("---")
+            st.markdown("### 🎯 運動專長偵測")
             
             # --- 運動專長分析邏輯 ---
             recommendations = []
@@ -236,6 +266,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
