@@ -144,23 +144,65 @@ if data:
                 title_html = "".join([f'<span style="background-color:gold; color:black; padding:4px 10px; border-radius:15px; margin-right:5px; font-weight:bold;">{t}</span>' for t in titles])
                 st.markdown(title_html, unsafe_allow_html=True)
 
-        # G
+        # G. 運動處方
+        st.divider()
+        st.subheader("🎯 針對性運動處方")
+        rec1, rec2 = st.columns(2)
+        with rec1:
+            st.write("🏆 **優勢推薦：**")
+            if s1 >= 8: st.success("🏀 核心強：推薦籃球/足球隊")
+            if s2 >= 8: st.success("🧘 柔軟好：推薦舞蹈/壁球隊")
+            if s3 >= 8: st.success("🎾 力量大：推薦乒乓球/壁球")
+            if s4 >= 8: st.success("⚽ 耐力佳：推薦田徑/足球隊")
+        with rec2:
+            st.write("🛠️ **弱項加強：**")
+            if s1 <= 4: st.warning("🧱 每日練習 30s 棒式。")
+            if s2 <= 4: st.warning("🧘 每日睡前拉筋伸展。")
+            if s3 <= 4: st.warning("💪 使用握力器強化上肢。")
+            if s4 <= 4: st.warning("🏃 每週兩次 10min 慢跑。")
 
+        # H. 雲端同步與老師後台
+        try:
+            res_df = pd.DataFrame([{
+                "時間": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "姓名": name, "性別": gender, "年齡": age, "所屬校隊": current_team,
+                "BMI": bmi, "總分": total, "仰臥起坐": v1, "體前彎": v2, "手握力": v3, "9分鐘耐力跑": v4
+            }])
+            existing_data = conn.read(ttl=0)
+            updated_df = pd.concat([existing_data, res_df], ignore_index=True)
+            conn.update(data=updated_df)
+            st.success("✅ 數據已雲端同步。")
+        except:
+            st.warning("⚠️ 雲端同步失敗。")
 
+        # I. 老師大盤分析
+        st.write("")
+        with st.expander("📊 老師專屬：校隊管理與英雄榜"):
+            all_db = conn.read(ttl=0)
+            if not all_db.empty:
+                h1, h2 = st.columns(2)
+                with h1:
+                    st.write("🏆 **總分榮譽榜 (Top 5)**")
+                    st.table(all_db.nlargest(5, '總分')[['姓名', '總分', '所屬校隊']])
+                with h2:
+                    st.write("🔥 **單項最強王者**")
+                    b1, b2 = all_db.loc[all_db['仰臥起坐'].idxmax()], all_db.loc[all_db['體前彎'].idxmax()]
+                    b3, b4 = all_db.loc[all_db['手握力'].idxmax()], all_db.loc[all_db['9分鐘耐力跑'].idxmax()]
+                    st.write(f"🧱 核心王：{b1['姓名']} | 🤸 柔軟王：{b2['姓名']}")
+                    st.write(f"💪 力量王：{b3['姓名']} | 🏃 耐力王：{b4['姓名']}")
+                
+                # 校隊選拔篩選器
+                st.divider()
+                st.write("🕵️ **校隊潛力新星 (非校隊中數據優異者)**")
+                non_team = all_db[all_db['所屬校隊'] == "無"]
+                st.dataframe(non_team.nlargest(5, '總分')[['姓名', '總分', 'BMI']], hide_index=True)
+                
+                st.write("📋 **校隊成員狀態監控**")
+                team_sel = st.selectbox("切換校隊", ["足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"])
+                st.dataframe(all_db[all_db['所屬校隊'] == team_sel][['姓名', '總分', '時間']], hide_index=True)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+else:
+    st.error("❌ 找不到數據庫 (norms.json)！")
 
 
 
