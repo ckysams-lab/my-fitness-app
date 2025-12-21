@@ -32,7 +32,7 @@ def get_score(val, gender, age, item_key, data):
     except: return 0
 
 # --- 主介面 ---
-st.title("🚀 小學體適能智慧評測系統 (40分制版本)")
+st.title("🚀 小學體適能智慧評測系統")
 data = load_data()
 
 if data:
@@ -63,7 +63,7 @@ if data:
         v3 = v_col3.number_input("手握力 (kg)", 0.0, 100.0, 10.0)
         v4 = v_col4.number_input("9分鐘耐力跑 (米)", 0)
         
-        submitted = st.form_submit_button("🌟 生成 40 分制個人戰報並同步雲端")
+        submitted = st.form_submit_button("🌟 生成 個人體適能戰報")
 
     # 4. 提交後的處理 (核心邏輯)
     if submitted:
@@ -189,6 +189,7 @@ if data:
                 st.dataframe(all_db[all_db["總分"] < 16][["姓名", "總分", "所屬校隊"]])
 else:
     st.error("❌ 找不到 norms.json 數據庫！")
+
 
 
 
