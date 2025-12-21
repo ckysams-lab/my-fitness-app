@@ -14,7 +14,7 @@ try:
 except Exception as e:
     st.error(f"連線設定錯誤: {e}")
 
-# 2. 定義功能函數 (調整為 10 分制)
+# 2. 定義功能函數 (10 分制)
 def load_data():
     try:
         with open('norms.json', 'r', encoding='utf-8') as f:
@@ -27,7 +27,7 @@ def get_score(val, gender, age, item_key, data):
         thresholds = data[item_key][gender][str(age)]
         for i, t in enumerate(thresholds):
             if val >= t: 
-                return 10 - (i * 2)  # 原本 5,4,3,2,1 變為 10,8,6,4,2 分
+                return 10 - (i * 2)  # 滿分 10 分
         return 0
     except: return 0
 
@@ -45,16 +45,9 @@ if data:
         with col2:
             name = st.text_input("學生姓名/編號", "學生A")
             current_team = st.selectbox("目前所屬校隊", ["無", "足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"])
-            enable_cam = st.checkbox("📸 開啟相機拍攝球員照")
-            
         with col3:
             h = st.number_input("身高 (cm)", 100.0, 180.0, 140.0)
             w = st.number_input("體重 (kg)", 15.0, 90.0, 35.0)
-
-        # 相機放在表單內，但在提交按鈕前
-        photo = None
-        if enable_cam:
-            photo = st.camera_input("請對準學生拍照")
 
         st.markdown("---")
         v_col1, v_col2, v_col3, v_col4 = st.columns(4)
@@ -63,9 +56,9 @@ if data:
         v3 = v_col3.number_input("手握力 (kg)", 0.0, 100.0, 10.0)
         v4 = v_col4.number_input("9分鐘耐力跑 (米)", 0)
         
-        submitted = st.form_submit_button("🌟 生成 個人體適能戰報")
+        submitted = st.form_submit_button("🌟 生成 40 分制個人戰報並同步雲端")
 
-    # 4. 提交後的處理 (核心邏輯)
+    # 4. 提交後的處理
     if submitted:
         # A. 計算分數
         bmi = round(w / ((h/100)**2), 1)
@@ -75,7 +68,7 @@ if data:
         s4 = get_score(v4, gender, age, "run_9min", data)
         total = s1 + s2 + s3 + s4
 
-        # B. 決定等級 (標準隨總分 40 同步調整)
+        # B. 決定等級主題色
         if total >= 32:
             rgb, rank_label = "255, 215, 0", "🥇 卓越 (GOLD ELITE)"
         elif total >= 24:
@@ -87,52 +80,42 @@ if data:
 
         accent = f"rgb({rgb})"
         
-        # C. 注入 CSS
+        # C. 注入 CSS (深色電競風)
         st.markdown(f"""
             <style>
             .stApp {{ background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%); color: white !important; }}
-            .header-box {{ background-color: {accent}; padding: 20px; border-radius: 15px; text-align: center; box-shadow: 0 0 20px {accent}; margin-bottom: 25px; color: black !important; }}
+            .header-box {{ background-color: {accent}; padding: 20px; border-radius: 15px; text-align: center; color: black !important; margin-bottom: 25px; }}
             .metric-card {{ background: rgba(255,255,255,0.05); border-left: 5px solid {accent}; padding: 15px; border-radius: 10px; }}
-            div[data-testid="stProgress"] > div > div > div > div {{ background-color: {accent} !important; }}
             h1, h2, h3, h4, p, span, label {{ color: white !important; }}
+            div[data-testid="stProgress"] > div > div > div > div {{ background-color: {accent} !important; }}
             </style>
         """, unsafe_allow_html=True)
 
         # D. 個人戰報抬頭
         st.markdown(f'<div class="header-box"><h1 style="color:black !important; margin:0;">{name} 體能戰報</h1><h2 style="color:black !important; margin:0;">{rank_label}</h2></div>', unsafe_allow_html=True)
         
-        # --- 勳章顯示 (10 分滿分勳章) ---
+        # --- 勳章顯示 (10 分滿分) ---
         badges = []
         if s1 == 10: badges.append("🧱 鋼鐵核心")
         if s2 == 10: badges.append("🤸 柔軟大師")
         if s3 == 10: badges.append("⚡ 神力超人")
         if s4 == 10: badges.append("🔥 耐力之王")
-        
         if badges:
             b_cols = st.columns(len(badges))
-            for i, b in enumerate(badges):
-                b_cols[i].success(f"🏅 {b}")
+            for i, b in enumerate(badges): b_cols[i].success(f"🏅 {b}")
 
-        # E. 數據看板 (顯示 40 分)
+        # E. 數據看板
         st.write("")
         m1, m2, m3 = st.columns(3)
         m1.markdown(f'<div class="metric-card"><h4>總得分</h4><h2 style="color:{accent} !important;">{total} / 40</h2></div>', unsafe_allow_html=True)
         m2.markdown(f'<div class="metric-card"><h4>BMI 指數</h4><h2 style="color:{accent} !important;">{bmi}</h2></div>', unsafe_allow_html=True)
-        m3.markdown(f'<div class="metric-card"><h4>目前隊伍</h4><h2 style="color:{accent} !important;">{current_team}</h2></div>', unsafe_allow_html=True)
+        m3.markdown(f'<div class="metric-card"><h4>所屬隊伍</h4><h2 style="color:{accent} !important;">{current_team}</h2></div>', unsafe_allow_html=True)
 
-        # F. 球員卡看板 (雷達圖範圍調整為 10)
+        # F. 體能數據視覺化 (雷達圖)
         st.divider()
-        g1, g2, g3 = st.columns([1, 1.2, 1])
-        
+        g1, g2 = st.columns([1.5, 1])
         with g1:
-            st.markdown("### 👤 選手動態")
-            if photo:
-                st.image(photo, use_container_width=True)
-            else:
-                st.markdown('<div style="height:200px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; border-radius:15px;"><span style="font-size:5rem;">👤</span></div>', unsafe_allow_html=True)
-
-        with g2:
-            st.markdown("### 🕸️ 均衡度分析")
+            st.markdown("### 🕸️ 體能均衡度分析 (40分制)")
             categories = ['仰臥起坐', '坐姿體前彎', '手握力', '9分鐘耐力跑']
             scores = [s1, s2, s3, s4]
             fig = go.Figure(go.Scatterpolar(
@@ -141,28 +124,26 @@ if data:
             ))
             fig.update_layout(
                 polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 10], gridcolor="#444")),
-                paper_bgcolor='rgba(0,0,0,0)', showlegend=False, height=300, margin=dict(l=30, r=30, t=30, b=30)
+                paper_bgcolor='rgba(0,0,0,0)', showlegend=False, height=400
             )
             st.plotly_chart(fig, use_container_width=True)
-
-        with g3:
-            st.markdown("### 📊 分數統計")
+        with g2:
+            st.markdown("### 📊 單項明細")
             for label, score in zip(categories, scores):
                 st.write(f"**{label}** ({score}/10)")
                 st.progress(score / 10)
 
-        # G. 運動建議 (針對 10 分制判定)
+        # G. 運動處方
         st.divider()
-        st.subheader("🎯 運動處方與推薦")
-        rec_col1, rec_col2 = st.columns(2)
-        with rec_col1:
-            if s4 >= 8: st.success("⚽ **推薦社團：足球 / 田徑**")
-            elif s3 >= 8: st.success("🎾 **推薦社團：壁球 / 乒乓球**")
-            elif s1 >= 8: st.success("🏀 **推薦社團：籃球**")
-            else: st.info("🏃 **建議：** 多方嘗試找出最有興趣的項目！")
-        with rec_col2:
-            if s2 <= 4: st.warning("🧘 **改善建議：** 加強每天的坐姿體前彎伸展。")
-            if s4 <= 4: st.warning("🏃 **改善建議：** 每週增加心肺耐力訓練。")
+        st.subheader("🎯 專屬建議")
+        rec1, rec2 = st.columns(2)
+        with rec1:
+            if s4 >= 8: st.success("⚽ **推薦：** 足球/田徑 (心肺能力優異)")
+            elif s3 >= 8: st.success("🎾 **推薦：** 壁球/乒乓球 (爆發力優異)")
+            else: st.info("🏃 **建議：** 每天增加 15 分鐘快走或慢跑。")
+        with rec2:
+            if s2 <= 4: st.warning("🧘 **伸展：** 每日睡前練習坐姿體前彎伸展。")
+            if s1 <= 4: st.warning("🧱 **核心：** 嘗試每日進行 30 秒棒式支撐。")
 
         # H. 雲端同步
         try:
@@ -174,21 +155,36 @@ if data:
             existing_data = conn.read(ttl=0)
             updated_df = pd.concat([existing_data, res_df], ignore_index=True)
             conn.update(data=updated_df)
-            st.success("✅ 數據已自動同步至雲端！")
+            st.success("✅ 數據已成功存入雲端！")
         except:
-            st.warning("⚠️ 雲端同步失敗，請手動下載。")
+            st.warning("⚠️ 雲端連線異常，請下載報告保存。")
 
-        st.download_button("📥 下載本次戰報", res_df.to_csv(index=False).encode('utf-8-sig'), f"{name}_40pts.csv")
+        st.download_button("📥 下載本次 CSV 戰報", res_df.to_csv(index=False).encode('utf-8-sig'), f"{name}_report.csv")
 
-        # I. 老師大盤分析 (大盤數據同步顯示新分數)
-        with st.expander("📊 老師專屬：大盤分析"):
+        # I. 老師大盤分析 & 英雄榜
+        st.write("")
+        with st.expander("📊 老師專屬：全校大盤分析與英雄榜"):
             all_db = conn.read(ttl=0)
             if not all_db.empty:
+                # 1. 英雄榜
+                st.subheader("🏆 體能英雄榜 (Top 5)")
+                h1, h2 = st.columns(2)
+                with h1:
+                    st.write("✨ **總分榮譽榜**")
+                    st.table(all_db.nlargest(5, '總分')[['姓名', '總分', '所屬校隊']])
+                with h2:
+                    st.write("🏃 **各項第一名**")
+                    best_run = all_db.loc[all_db['9分鐘耐力跑'].idxmax()]
+                    best_grip = all_db.loc[all_db['手握力'].idxmax()]
+                    st.success(f"🏃 耐力王：{best_run['姓名']} ({best_run['9分鐘耐力跑']}m)")
+                    st.info(f"💪 力量王：{best_grip['姓名']} ({best_grip['手握力']}kg)")
+                
+                # 2. 校隊平均分柱狀圖
+                st.divider()
+                st.write("🏃 **校隊平均總分對比**")
                 st.bar_chart(all_db.groupby("所屬校隊")["總分"].mean())
-                st.write("⚠️ **低分關注名單 (總分 < 16)**")
-                st.dataframe(all_db[all_db["總分"] < 16][["姓名", "總分", "所屬校隊"]])
 else:
-    st.error("❌ 找不到 norms.json 數據庫！")
+    st.error("❌ 找不到數據庫 (norms.json)！")
 
 
 
