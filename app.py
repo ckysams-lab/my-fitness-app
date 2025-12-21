@@ -120,9 +120,26 @@ if data:
             with h2:
                 st.write("🔥 **單項最強王者**")
                 try:
-                    st.write(f"🧱 核心王：{all_db.loc[all_db['仰臥起坐'].idxmax()]['姓名']}")
-                    st.write(f"🏃 耐力王：{all_db.loc[all_db['9分鐘耐力跑'].idxmax()]['姓名']}")
-                except: st.write("計算中...")
+                    # 抓取各項最大值的學生資料
+                    b1 = all_db.loc[all_db['仰臥起坐'].idxmax()]
+                    b2 = all_db.loc[all_db['體前彎'].idxmax()]
+                    b3 = all_db.loc[all_db['手握力'].idxmax()]
+                    b4 = all_db.loc[all_db['9分鐘耐力跑'].idxmax()]
+                    
+                    # 顯示四項王者
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        st.write(f"🧱 **核心王**")
+                        st.info(f"{b1['姓名']} ({int(b1['仰臥起坐'])}次)")
+                        st.write(f"💪 **力量王**")
+                        st.info(f"{b3['姓名']} ({b3['手握力']}kg)")
+                    with c2:
+                        st.write(f"🤸 **柔軟王**")
+                        st.info(f"{b2['姓名']} ({int(b2['體前彎'])}cm)")
+                        st.write(f"🏃 **耐力王**")
+                        st.info(f"{b4['姓名']} ({int(b4['9分鐘耐力跑'])}m)")
+                except Exception as e:
+                    st.write("⏳ 數據計算中，請稍後...")
 
             st.divider()
             # 關鍵修正：宣告 3 個 Tabs
@@ -164,6 +181,7 @@ if data:
                 st.download_button("💾 下載全校期末總表 (CSV)", csv_data, f"Fitness_{datetime.now().year}.csv", "text/csv")
         else: st.info("尚無紀錄")
 else: st.error("❌ 找不到數據庫！")
+
 
 
 
