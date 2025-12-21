@@ -120,37 +120,29 @@ if data:
         m2.markdown(f'<div class="metric-card"><h4>BMI 指數</h4><h2 style="color:{accent} !important;">{bmi}</h2></div>', unsafe_allow_html=True)
         m3.markdown(f'<div class="metric-card"><h4>目前隊伍</h4><h2 style="color:{accent} !important;">{current_team}</h2></div>', unsafe_allow_html=True)
 
-        # F. 球員卡看板 (雷達圖範圍調整為 10)
+        # F. 體能球員卡看板 (優化照片顯示邏輯)
         st.divider()
-        g1, g2, g3 = st.columns([1, 1.2, 1])
+        g1, g2, g3 = st.columns([1, 1.2, 1]) 
         
         with g1:
             st.markdown("### 👤 選手動態")
-            if photo:
-                st.image(photo, use_container_width=True)
+            # 優先檢查本次提交的 photo 變數
+            if photo is not None:
+                st.image(photo, use_container_width=True, caption="本次實拍")
+                st.markdown(f"<p style='text-align:center; color:{accent} !important;'><b>{current_team} 成員</b></p>", unsafe_allow_html=True)
             else:
-                st.markdown('<div style="height:200px; background:rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:center; border-radius:15px;"><span style="font-size:5rem;">👤</span></div>', unsafe_allow_html=True)
-
-        with g2:
-            st.markdown("### 🕸️ 均衡度分析")
-            categories = ['仰臥起坐', '坐姿體前彎', '手握力', '9分鐘耐力跑']
-            scores = [s1, s2, s3, s4]
-            fig = go.Figure(go.Scatterpolar(
-                r=scores + [scores[0]], theta=categories + [categories[0]], 
-                fill='toself', line=dict(color=accent), fillcolor=f"rgba({rgb}, 0.3)"
-            ))
-            fig.update_layout(
-                polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 10], gridcolor="#444")),
-                paper_bgcolor='rgba(0,0,0,0)', showlegend=False, height=300, margin=dict(l=30, r=30, t=30, b=30)
-            )
-            st.plotly_chart(fig, use_container_width=True)
-
-        with g3:
-            st.markdown("### 📊 分數統計")
-            for label, score in zip(categories, scores):
-                st.write(f"**{label}** ({score}/10)")
-                st.progress(score / 10)
-
+                # 顯示預設頭像
+                st.markdown(f"""
+                    <div style="height:220px; background:rgba(255,255,255,0.05); 
+                                display:flex; align-items:center; justify-content:center; 
+                                border: 2px dashed {accent}; border-radius:15px;">
+                        <div style="text-align:center;">
+                            <span style="font-size:4rem;">👤</span><br>
+                            <span style="font-size:0.8rem; color:#888;">未偵測到照片</span>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+                
         # G. 運動建議 (針對 10 分制判定)
         st.divider()
         st.subheader("🎯 運動處方與推薦")
@@ -189,6 +181,7 @@ if data:
                 st.dataframe(all_db[all_db["總分"] < 16][["姓名", "總分", "所屬校隊"]])
 else:
     st.error("❌ 找不到 norms.json 數據庫！")
+
 
 
 
