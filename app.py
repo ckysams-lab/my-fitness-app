@@ -135,10 +135,47 @@ if data:
                 st.write(f"**{label}** : {score}/5")
                 st.progress(score / 5)
 
-        # G. 運動建議與同步邏輯
+        # --- G. 智能運動建議與處方 ---
         st.divider()
-        if s3 <= 2:
-            st.warning(f"📍 **建議：** 你的手握力有待提升，建議進行抓握訓練！")
+        st.subheader("📋 專屬運動處方 (Exercise Prescription)")
+        
+        # 建立建議容器
+        advice_list = []
+
+        # 1. 仰臥起坐 (核心肌群)
+        if s1 >= 4:
+            advice_list.append("✅ **核心強大：** 你的腹肌耐力優異，這有助於你在所有運動中保持穩定。")
+        elif s1 <= 2:
+            advice_list.append("📍 **核心訓練：** 建議加強腹部力量，每天嘗試 3 組 30 秒的「棒式 (Plank)」。")
+
+        # 2. 坐姿體前彎 (柔軟度)
+        if s2 >= 4:
+            advice_list.append("✅ **柔軟大師：** 你的關節活動度很好，運動時較不容易受傷。")
+        elif s2 <= 2:
+            advice_list.append("📍 **柔韌伸展：** 建議每天睡前進行 5 分鐘坐姿體前彎拉伸，每次停留 15 秒，不要憋氣。")
+
+        # 3. 手握力 (上肢爆發力)
+        if s3 >= 4:
+            advice_list.append("✅ **力量驚人：** 你的抓握力強，在壁球或乒乓球的控球上很有優勢。")
+        elif s3 <= 2:
+            advice_list.append("📍 **抓握練習：** 可以練習擠壓網球或使用握力器，提升上肢的抓握穩定性。")
+
+        # 4. 耐力跑 (心肺耐力)
+        if s4 >= 4:
+            advice_list.append("✅ **耐力小超人：** 你的心肺能力極佳，具備成為長跑或足球選手的潛力。")
+        elif s4 <= 2:
+            advice_list.append("📍 **心肺強化：** 建議每週進行 3 次 15 分鐘的慢跑，或在公園進行往返快走。")
+
+        # 顯示建議
+        if advice_list:
+            for advice in advice_list:
+                # 根據強弱項顯示不同顏色
+                if "✅" in advice:
+                    st.success(advice)
+                else:
+                    st.info(advice)
+        
+        # --- 自動同步與下載邏輯 (保持不變) ---
 
         try:
             res_df = pd.DataFrame([{
@@ -161,6 +198,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
+
 
 
 
