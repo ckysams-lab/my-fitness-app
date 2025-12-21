@@ -238,8 +238,45 @@ if data:
                     st.dataframe(styled_df, use_container_width=True)
                 else:
                     st.warning(f"資料庫中暫無 {team_sel} 的隊員紀錄。")
+                
+            with tab3: # 新增一個 Tab
+                st.subheader("📊 全班體能與健康分佈")
+                dist_col1, dist_col2 = st.columns(2)
+                
+                with dist_col1:
+                    st.write("📈 **體位 (BMI) 分佈狀態**")
+                    # 將 BMI 分類
+                    bmi_bins = [0, 18.5, 24, 27, 100]
+                    bmi_labels = ['體重過輕', '正常範圍', '過重', '肥胖']
+                    all_db['BMI分類'] = pd.cut(all_db['BMI'], bins=bmi_bins, labels=bmi_labels)
+                    bmi_counts = all_db['BMI分類'].value_counts()
+                    st.bar_chart(bmi_counts)
+                
+                with dist_col2:
+                    st.write("🎯 **體能等級佔比**")
+                    # 根據總分定義等級
+                    def get_rank(s):
+                        if s >= 32: return "🥇 卓越"
+                        if s >= 24: return "🥈 優良"
+                        if s >= 16: return "🥉 尚可"
+                        return "⚪ 待加強"
+                    all_db['等級'] = all_db['總分'].apply(get_rank)
+                    rank_counts = all_db['等級'].value_counts()
+                    st.bar_chart(rank_counts)
+
+                st.divider()
+                st.write("📥 **行政存檔專區**")
+                # 提供一鍵下載全班總表
+                csv_all = all_db.to_csv(index=False).encode('utf-8-sig')
+                st.download_button(
+                    label="💾 下載全校期末體能總表 (Excel 格式)",
+                    data=csv_all,
+                    file_name=f"Physical_Fitness_Final_{datetime.now().strftime('%Y')}.csv",
+                    mime="text/csv"
+                )
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
