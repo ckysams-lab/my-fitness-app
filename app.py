@@ -53,7 +53,7 @@ if data:
 
     # 4. 提交後的處理 (按鈕按下後才執行以下所有內容)
     if submitted:
-        # A. 分數判定與主題色設定
+        # A. 分數判定與主題色設定 (改用 RGBA 格式)
         bmi = round(w / ((h/100)**2), 1)
         s1 = get_score(v1, gender, age, "sit_ups", data)
         s2 = get_score(v2, gender, age, "sit_reach", data)
@@ -61,89 +61,55 @@ if data:
         s4 = get_score(v4, gender, age, "run_9min", data)
         total = s1 + s2 + s3 + s4
 
-        # 定義不同獎項的「發光色」
+        # 定義不同獎項的「發光色」 (R, G, B)
         if total >= 15:
-            accent_color = "#FFD700"  # 閃耀金
+            base_rgb = "255, 215, 0"  # 鮮豔金
             rank_name = "GOLD ELITE"
         elif total >= 10:
-            accent_color = "#00D4FF"  # 科技藍
+            base_rgb = "0, 212, 255"  # 科技藍
             rank_name = "SILVER PRO"
         elif total >= 8:
-            accent_color = "#FF8C00"  # 活力橘
+            base_rgb = "255, 140, 0"  # 活力橘
             rank_name = "BRONZE ACTIVE"
         else:
-            accent_color = "#FF2E63"  # 極限紅
+            base_rgb = "255, 46, 99"  # 極限紅
             rank_name = "CHALLENGER"
 
-        # --- B. 注入 CSS：深色電競風 ---
+        accent_color = f"rgb({base_rgb})"
+        fill_color = f"rgba({base_rgb}, 0.3)" # 設定 30% 透明度
+
+        # --- B. 注入 CSS (同步更新背景顏色引用) ---
         st.markdown(f"""
             <style>
-            /* 網頁深色背景 */
-            .stApp {{
-                background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%);
-                color: #FFFFFF !important;
-            }}
-            /* 霓虹邊框卡片 */
+            .stApp {{ background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%); color: #FFFFFF !important; }}
             .stats-card {{
                 background: rgba(255, 255, 255, 0.05);
                 border-left: 5px solid {accent_color};
-                padding: 20px;
-                border-radius: 10px;
-                box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
-                margin-bottom: 20px;
+                padding: 20px; border-radius: 10px; margin-bottom: 20px;
             }}
-            /* 修正文字顏色 */
-            h1, h2, h3, span, p, label {{
-                color: #FFFFFF !important;
-            }}
-            /* 讓 Metric 數值發光 */
-            div[data-testid="stMetricValue"] {{
-                color: {accent_color} !important;
-                text-shadow: 0 0 10px {accent_color}55;
-            }}
+            h1, h2, h3, span, p, label {{ color: #FFFFFF !important; }}
+            div[data-testid="stMetricValue"] {{ color: {accent_color} !important; }}
             </style>
         """, unsafe_allow_html=True)
 
-        # C. 標題區塊
-        st.markdown(f"""
-            <div style="text-align: center; padding: 10px;">
-                <h3 style="letter-spacing: 5px; opacity: 0.8;">ATHLETE PERFORMANCE</h3>
-                <h1 style="font-size: 3rem; text-shadow: 2px 2px 10px {accent_color}88;">{name}</h1>
-                <div style="background:{accent_color}; color:black; display:inline-block; padding:5px 20px; border-radius:50px; font-weight:bold;">
-                    {rank_name}
-                </div>
-            </div>
-        """, unsafe_allow_html=True)
+        # ... (中間標題與 Metrics 部分不變) ...
 
-        # D. 儀表板數據
-        st.write("")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.markdown('<div class="stats-card">', unsafe_allow_html=True)
-            st.metric("TOTAL SCORE", f"{total}/20")
-            st.markdown('</div>', unsafe_allow_html=True)
-        with col2:
-            st.markdown('<div class="stats-card">', unsafe_allow_html=True)
-            st.metric("BODY MASS INDEX", bmi)
-            st.markdown('</div>', unsafe_allow_html=True)
-        with col3:
-            st.markdown('<div class="stats-card">', unsafe_allow_html=True)
-            st.metric("LEVEL", rank_name.split(" ")[0])
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        # E. 圖表區塊
+        # --- E. 圖表區塊 (修正後的 Plotly 部分) ---
         st.divider()
         g1, g2 = st.columns([1, 1])
         with g1:
-            # 雷達圖顏色優化
             categories = ['仰臥起坐', '坐姿體前彎', '手握力', '耐力跑']
             scores = [s1, s2, s3, s4]
             categories_closed = categories + [categories[0]]
             scores_closed = scores + [scores[0]]
             
-            fig = go.Figure(go.Scatterpolar(
-                r=scores_closed, theta=categories_closed, fill='toself',
-                line_color=accent_color, fillcolor=f"{accent_color}33"
+            fig = go.Figure()
+            fig.add_trace(go.Scatterpolar(
+                r=scores_closed,
+                theta=categories_closed,
+                fill='toself',
+                line=dict(color=accent_color), # 修正顏色設定方式
+                fillcolor=fill_color           # 修正顏色設定方式
             ))
             fig.update_layout(
                 polar=dict(
@@ -151,7 +117,8 @@ if data:
                     radialaxis=dict(visible=True, range=[0, 5], gridcolor="#444", tickfont=dict(color="white")),
                     angularaxis=dict(gridcolor="#444", tickfont=dict(color="white"))
                 ),
-                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
                 showlegend=False, height=350, margin=dict(l=40, r=40, t=30, b=30)
             )
             st.plotly_chart(fig, use_container_width=True)
@@ -198,6 +165,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
+
 
 
 
