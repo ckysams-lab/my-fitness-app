@@ -114,22 +114,26 @@ if data:
             st.success("✅ 數據已雲端同步。")
         except: st.warning("⚠️ 雲端同步暫時不可用，請檢查 Secrets 設定。")
 
-    # --- I. 老師大盤分析 ---
-    st.write("---")
-    with st.expander("📊 老師專屬：全校管理後台"):
-        # --- I. 老師大盤分析 (加入密碼鎖) ---
+   # --- I. 老師大盤分析 (修正縮進與重複邏輯) ---
     st.write("---")
     with st.expander("📊 老師專屬：全校管理後台"):
         # 1. 密碼驗證介面
         admin_password = st.text_input("🔑 請輸入管理員密碼", type="password", key="admin_pwd")
         
-        # 這裡設定您的專屬密碼 (例如：8888)
-        if admin_password == "8888":
+        # 設定您的專屬密碼
+        MASTER_PASSWORD = "8888" 
+        
+        if admin_password == MASTER_PASSWORD:
             st.success("✅ 認證成功，歡迎老師！")
             
-            all_db = conn.read(ttl=0)
+            # 讀取雲端數據
+            try:
+                all_db = conn.read(ttl=0)
+            except:
+                all_db = pd.DataFrame()
+
             if not all_db.empty:
-                # 這裡放原本的所有功能 (英雄榜、Tabs、數據下載等)
+                # --- A. 榮譽榜 ---
                 st.subheader("🏆 全校榮譽榜")
                 h1, h2 = st.columns(2)
                 
@@ -157,9 +161,11 @@ if data:
                             st.write("🏃 **耐力王**")
                             st.info(f"{b4['姓名']} ({int(b4['9分鐘耐力跑'])}m)")
                     except:
-                        st.write("數據處理中...")
+                        st.write("數據計算中...")
 
                 st.divider()
+                
+                # --- B. 功能分頁 ---
                 tab1, tab2, tab3 = st.tabs(["潛力新星搜尋", "現有隊員追蹤", "📊 全班數據解析"])
                 
                 with tab1:
@@ -198,11 +204,11 @@ if data:
                         st.bar_chart(plot_df['等級'].value_counts())
                     
                     csv_data = all_db.to_csv(index=False).encode('utf-8-sig')
-                    st.download_button("💾 下載全校期末總表 (CSV)", csv_data, f"Fitness_Summary.csv", "text/csv")
+                    st.download_button("💾 下載全校期末總表 (CSV)", csv_data, f"Fitness_Summary_{datetime.now().year}.csv", "text/csv")
             else:
                 st.info("尚無學生紀錄")
         
-        elif admin_password == "1234":
+        elif admin_password == "":
             st.info("💡 請輸入老師專用密碼以查閱後台數據。")
         else:
             st.error("❌ 密碼錯誤，拒絕存取機密數據。")
@@ -275,6 +281,7 @@ if data:
                 st.download_button("💾 下載全校期末總表 (CSV)", csv_data, f"Fitness_{datetime.now().year}.csv", "text/csv")
         else: st.info("尚無學生紀錄")
 else: st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
