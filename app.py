@@ -50,7 +50,7 @@ if data:
         w = st.number_input("體重 (kg)", 15.0, 90.0, 35.0)
         v1 = st.number_input("仰臥起坐 (次)", 0)
         v2 = st.number_input("坐姿體前彎 (cm)", 0)
-        v3 = st.number_input("手握力 (kg)", 0.0, 50.0, 15.0)
+        v3 = st.number_input("手握力 (kg)", 0.0, 100.0, 10.0)
         v4 = st.number_input("9分鐘耐力跑 (米)", 0)
         
         submitted = st.form_submit_button("🌟 計算總成績並同步雲端")
@@ -198,6 +198,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
+
 
 
 
