@@ -43,6 +43,11 @@ if data:
             age = st.number_input("年齡", 5, 13, 10)
         with col2:
             name = st.text_input("學生姓名/編號", "學生A")
+            # 在姓名輸入框下方加入
+            enable_cam = st.checkbox("📸 開啟相機拍攝球員照")
+            photo = None
+        if enable_cam:
+            photo = st.camera_input("請對準學生拍照")
             current_team = st.selectbox("目前所屬校隊", ["無", "足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"])
         with col3:
             h = st.number_input("身高 (cm)", 100.0, 180.0, 140.0)
@@ -171,6 +176,7 @@ if data:
                 st.dataframe(all_db[all_db["總分"] < 8][["姓名", "所屬校隊", "總分", "BMI"]])
 else:
     st.error("❌ 找不到 norms.json 數據庫！")
+
 
 
 
