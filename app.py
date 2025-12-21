@@ -98,12 +98,29 @@ if data:
         # D. 個人戰報抬頭與勳章
         st.markdown(f'<div class="header-box"><h1 style="color:black !important; margin:0;">{name} 體能戰報</h1><h2 style="color:black !important; margin:0;">{rank_label}</h2></div>', unsafe_allow_html=True)
         
-        # 勳章系統
-        badge_cols = st.columns(4)
-        badges = [("🧱 核心", s1), ("🤸 柔軟", s2), ("⚡ 神力", s3), ("🔥 耐力", s4)]
-        for i, (b_name, b_score) in enumerate(badges):
-            if b_score == 5:
-                badge_cols[i].markdown(f'<div style="text-align:center; padding:5px; border:2px solid {accent}; border-radius:10px; background:rgba({rgb}, 0.2);">🏆 {b_name}</div>', unsafe_allow_html=True)
+        # --- 勳章與照片顯示 ---
+        st.divider()
+        c1, c2 = st.columns([1, 2])
+        
+        with c1:
+            if photo:
+                st.image(photo, caption=f"{name} 選手", use_container_width=True)
+            else:
+                st.info("尚未拍攝照片")
+                
+        with c2:
+            st.markdown("### 🏆 獲得勳章")
+            badges = []
+            if s1 == 5: badges.append("🧱 鋼鐵核心")
+            if s2 == 5: badges.append("🤸 柔軟大師")
+            if s3 == 5: badges.append("⚡ 神力超人")
+            if s4 == 5: badges.append("🔥 耐力之王")
+            
+            if badges:
+                for b in badges:
+                    st.success(f"🏅 {b}")
+            else:
+                st.write("繼續努力，解鎖專項勳章！")
 
         # E. 數據看板
         st.write("")
@@ -176,6 +193,7 @@ if data:
                 st.dataframe(all_db[all_db["總分"] < 8][["姓名", "所屬校隊", "總分", "BMI"]])
 else:
     st.error("❌ 找不到 norms.json 數據庫！")
+
 
 
 
