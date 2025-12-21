@@ -117,7 +117,7 @@ if data:
         g1, g2 = st.columns([1, 1])
         with g1:
             st.subheader("🕸️ 均衡度分析")
-            categories = ['仰臥起坐', '坐姿體前彎', '手握力', '耐力跑']
+            categories = ['仰臥起坐', '坐姿體前彎', '手握力', '9分鐘耐力跑']
             scores = [s1, s2, s3, s4]
             fig = go.Figure(go.Scatterpolar(
                 r=scores + [scores[0]], theta=categories + [categories[0]], 
@@ -161,6 +161,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
+
 
 
 
