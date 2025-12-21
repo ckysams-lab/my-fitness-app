@@ -3,14 +3,32 @@ import json
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
-# 1. 頁面與連線設定 (必須在最前面)
-st.set_page_config(page_title="體適能評測系統", page_icon="📊")
+# 建立連線 (這個會自動去 Secrets 找資料)
+conn = st.connection("gsheets", type="streamlit_gsheets")
 
-# 建立雲端連線
-try:
-    conn = st.connection("gsheets", type=GSheetsConnection)
-except:
-    st.warning("⚠️ 尚未連接 Google Sheets，數據將僅限手動下載。")
+# --- 在 if submitted: 區塊內 ---
+if submitted:
+    # 建立要存檔的資料
+    res_df = pd.DataFrame([{
+        "時間": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
+        "姓名": name, "性別": gender, "年齡": age,
+        "BMI": bmi, "總分": total,
+        "仰臥起坐": v1, "體前彎": v2, "跳遠": v3, "耐力跑": v4
+    }])
+
+    try:
+        # 讀取現有資料
+        # 注意：這裡會從 Secrets 讀取網址
+        existing_data = conn.read()
+        
+        # 合併新舊資料
+        updated_df = pd.concat([existing_data, res_df], ignore_index=True)
+        
+        # 寫回雲端 (關鍵：這一步會觸發 Streamlit Cloud 的自動授權)
+        conn.update(data=updated_df)
+        st.success("✅ 數據已透過官方 API 存入雲端！")
+    except Exception as e:
+        st.error(f"儲存失敗：{e}")
 
 # 2. 定義功能函數
 def load_data():
@@ -122,4 +140,5 @@ if data:
             
             st.success("✅ 數據已成功同步至老師的雲端試算表！")
         except Exception as e:
+
             st.warning(f"⚠️ 雲端同步失敗（可能是 Secrets 未設定或權限問題）。錯誤：{e}")
