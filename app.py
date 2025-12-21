@@ -66,10 +66,10 @@ if data:
     if submitted:
         # A. 計算分數
         bmi = round(w / ((h/100)**2), 1)
-        s1 = get_score(v1, gender, age, "sit_ups", data)
-        s2 = get_score(v2, gender, age, "sit_reach", data)
-        s3 = get_score(v3, gender, age, "grip_strength", data) 
-        s4 = get_score(v4, gender, age, "run_9min", data)
+        s1 = get_score(v1, gender, age, "sit_ups", data)×2
+        s2 = get_score(v2, gender, age, "sit_reach", data)×2
+        s3 = get_score(v3, gender, age, "grip_strength", data)×2 
+        s4 = get_score(v4, gender, age, "run_9min", data)×2
         total = s1 + s2 + s3 + s4
 
         # B. 決定等級與主題色
@@ -217,6 +217,7 @@ if data:
                 st.dataframe(all_db[all_db["總分"] < 8][["姓名", "所屬校隊", "總分", "BMI"]])
 else:
     st.error("❌ 找不到 norms.json 數據庫！")
+
 
 
 
