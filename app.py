@@ -53,7 +53,7 @@ if data:
 
     # 4. 提交後的處理 (按鈕按下後才執行以下所有內容)
     if submitted:
-        # A. 計算分數
+        # A. 分數判定與主題色設定
         bmi = round(w / ((h/100)**2), 1)
         s1 = get_score(v1, gender, age, "sit_ups", data)
         s2 = get_score(v2, gender, age, "sit_reach", data)
@@ -61,59 +61,106 @@ if data:
         s4 = get_score(v4, gender, age, "run_9min", data)
         total = s1 + s2 + s3 + s4
 
-        # B. 根據分數決定主題色
+        # 定義不同獎項的「發光色」
         if total >= 15:
-            rank_color = "#FFD700"  # 金色
-            rank_label = "🥇 卓越 (Gold)"
+            accent_color = "#FFD700"  # 閃耀金
+            rank_name = "GOLD ELITE"
         elif total >= 10:
-            rank_color = "#C0C0C0"  # 銀色
-            rank_label = "🥈 優良 (Silver)"
+            accent_color = "#00D4FF"  # 科技藍
+            rank_name = "SILVER PRO"
         elif total >= 8:
-            rank_color = "#CD7F32"  # 銅色
-            rank_label = "🥉 尚可 (Bronze)"
+            accent_color = "#FF8C00"  # 活力橘
+            rank_name = "BRONZE ACTIVE"
         else:
-            rank_color = "#E74C3C"  # 紅色
-            rank_label = "⚪ 待加強"
+            accent_color = "#FF2E63"  # 極限紅
+            rank_name = "CHALLENGER"
 
-        # C. 專業儀表板抬頭
+        # --- B. 注入 CSS：深色電競風 ---
         st.markdown(f"""
-            <div style="background-color:{rank_color}; padding:20px; border-radius:10px; text-align:center;">
-                <h1 style="color:white; margin:0;">{name} 的體能戰報</h1>
-                <h2 style="color:white; margin:0;">{rank_label}</h2>
+            <style>
+            /* 網頁深色背景 */
+            .stApp {{
+                background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%);
+                color: #FFFFFF !important;
+            }}
+            /* 霓虹邊框卡片 */
+            .stats-card {{
+                background: rgba(255, 255, 255, 0.05);
+                border-left: 5px solid {accent_color};
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5);
+                margin-bottom: 20px;
+            }}
+            /* 修正文字顏色 */
+            h1, h2, h3, span, p, label {{
+                color: #FFFFFF !important;
+            }}
+            /* 讓 Metric 數值發光 */
+            div[data-testid="stMetricValue"] {{
+                color: {accent_color} !important;
+                text-shadow: 0 0 10px {accent_color}55;
+            }}
+            </style>
+        """, unsafe_allow_html=True)
+
+        # C. 標題區塊
+        st.markdown(f"""
+            <div style="text-align: center; padding: 10px;">
+                <h3 style="letter-spacing: 5px; opacity: 0.8;">ATHLETE PERFORMANCE</h3>
+                <h1 style="font-size: 3rem; text-shadow: 2px 2px 10px {accent_color}88;">{name}</h1>
+                <div style="background:{accent_color}; color:black; display:inline-block; padding:5px 20px; border-radius:50px; font-weight:bold;">
+                    {rank_name}
+                </div>
             </div>
         """, unsafe_allow_html=True)
 
-        # D. 核心數據大指標
+        # D. 儀表板數據
         st.write("")
-        m_col1, m_col2, m_col3 = st.columns(3)
-        m_col1.metric("總得分", f"{total} / 20")
-        m_col2.metric("BMI 狀態", bmi, delta="正常" if 18.5 <= bmi <= 24 else "異常", delta_color="normal" if 18.5 <= bmi <= 24 else "inverse")
-        m_col3.metric("評測等級", rank_label.split(" ")[1])
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown('<div class="stats-card">', unsafe_allow_html=True)
+            st.metric("TOTAL SCORE", f"{total}/20")
+            st.markdown('</div>', unsafe_allow_html=True)
+        with col2:
+            st.markdown('<div class="stats-card">', unsafe_allow_html=True)
+            st.metric("BODY MASS INDEX", bmi)
+            st.markdown('</div>', unsafe_allow_html=True)
+        with col3:
+            st.markdown('<div class="stats-card">', unsafe_allow_html=True)
+            st.metric("LEVEL", rank_name.split(" ")[0])
+            st.markdown('</div>', unsafe_allow_html=True)
 
-        # E. 雷達圖與進度條分析 (左右並列)
+        # E. 圖表區塊
         st.divider()
-        g_col1, g_col2 = st.columns([1, 1])
-
-        with g_col1:
-            st.subheader("🕸️ 體能雷達圖")
+        g1, g2 = st.columns([1, 1])
+        with g1:
+            # 雷達圖顏色優化
             categories = ['仰臥起坐', '坐姿體前彎', '手握力', '耐力跑']
             scores = [s1, s2, s3, s4]
             categories_closed = categories + [categories[0]]
             scores_closed = scores + [scores[0]]
             
-            fig = go.Figure()
-            fig.add_trace(go.Scatterpolar(
+            fig = go.Figure(go.Scatterpolar(
                 r=scores_closed, theta=categories_closed, fill='toself',
-                line_color=rank_color, fillcolor=rank_color, opacity=0.6
+                line_color=accent_color, fillcolor=f"{accent_color}33"
             ))
-            fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), showlegend=False, height=350, margin=dict(l=40, r=40, t=20, b=20))
+            fig.update_layout(
+                polar=dict(
+                    bgcolor="rgba(0,0,0,0)",
+                    radialaxis=dict(visible=True, range=[0, 5], gridcolor="#444", tickfont=dict(color="white")),
+                    angularaxis=dict(gridcolor="#444", tickfont=dict(color="white"))
+                ),
+                paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                showlegend=False, height=350, margin=dict(l=40, r=40, t=30, b=30)
+            )
             st.plotly_chart(fig, use_container_width=True)
 
-        with g_col2:
-            st.subheader("📊 分項強弱分析")
+        with g2:
+            st.markdown(f"### ⚡ 專項分析")
             for label, score in zip(categories, scores):
-                st.write(f"**{label}** ({score}/5)")
-                st.progress(score / 5) # 自動生成運動感進度條
+                st.write(f"{label} ({score}/5)")
+                st.progress(score / 5)
 
         # F. 運動建議與同步邏輯 (其餘部分保持不變)
         st.divider()
@@ -151,6 +198,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
+
 
 
 
