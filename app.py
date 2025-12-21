@@ -52,7 +52,7 @@ if data:
         v_col1, v_col2, v_col3, v_col4 = st.columns(4)
         v1 = v_col1.number_input("仰臥起坐 (次)", 0)
         v2 = v_col2.number_input("坐姿體前彎 (cm)", 0)
-        v3 = v_col3.number_input("手握力 (kg)", 0.0, 60.0, 10.0)
+        v3 = v_col3.number_input("手握力 (kg)", 0.0, 100.0, 10.0)
         v4 = v_col4.number_input("9分鐘耐力跑 (米)", 0)
         
         submitted = st.form_submit_button("🌟 生成個人戰報並同步雲端")
@@ -171,6 +171,7 @@ if data:
                 st.dataframe(all_db[all_db["總分"] < 8][["姓名", "所屬校隊", "總分", "BMI"]])
 else:
     st.error("❌ 找不到 norms.json 數據庫！")
+
 
 
 
