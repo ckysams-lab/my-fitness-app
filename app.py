@@ -117,14 +117,45 @@ if data:
             st.plotly_chart(fig, use_container_width=True)
         
         with g2:
-            st.markdown("### 📊 單項評分詳情")
+            st.markdown("### 📊 各項成就等級")
             st.markdown(f"🪑 仰臥起坐： **{s1}** / 10 分")
             st.markdown(f"🤸 坐姿體前彎： **{s2}** / 10 分")
             st.markdown(f"💪 手握力： **{s3}** / 10 分")
             st.markdown(f"🏃 9分鐘跑： **{s4}** / 10 分")
             
             st.markdown("---")
+            st.markdown("### 🎯 運動專長偵測 (AI 校隊推薦)")
+            
+            # --- 運動專長分析邏輯 ---
+            recommendations = []
+            
+            # 1. 爆發與核心型 (仰臥起坐得分高)
+            if s1 >= 8: recommendations.append("⚽ 足球隊 (需要強大核心與爆發力)")
+            
+            # 2. 柔軟度型 (體前彎得分高)
+            if s2 >= 8: recommendations.append("🧘 藝術體操/舞蹈社 (具備卓越體感潛力)")
+            
+            # 3. 力量型 (手握力得分高)
+            if s3 >= 8: recommendations.append("🏹 射箭隊/🏸 乒羽隊 (具備優秀上肢穩定與爆發)")
+            
+            # 4. 耐力型 (9分鐘跑得分高)
+            if s4 >= 8: recommendations.append("🏃 田徑長跑隊 (具備優異心肺耐力)")
+
+            # 綜合判斷：如果總分很高但沒有單項特別突出
+            if total >= 30 and not recommendations:
+                recommendations.append("🏀 籃球隊 (全方位素質極佳)")
+
+            # 顯示推薦結果
+            if recommendations:
+                st.success("🌟 **根據體能數據，你非常適合加入：**")
+                for rec in recommendations:
+                    st.write(f"- {rec}")
+            else:
+                st.info("💡 目前體能均衡，建議先從感興趣的運動社團開始嘗試喔！")
+            
+            st.markdown("---")
             st.markdown("### 🤖 AI 智能助教評語")
+            # 保持原本的評語邏輯
             if total >= 32:
                 comment = f"震撼！{name} 你具備頂尖運動員的素質。"
             elif total >= 24:
@@ -133,8 +164,8 @@ if data:
                 comment = f"加油 {name}！專注於強項發展，你能做得更好。"
             
             best_item = categories[scores.index(max(scores))]
-            st.info(f"{comment}\n\n你表現最突出的項目是：**{best_item}**")
-
+            st.write(f"📢 {comment}")
+            st.write(f"💡 你表現最突出的項目是：**{best_item}**")
         # 雲端資料同步
         try:
             res_df = pd.DataFrame([{"時間": datetime.now().strftime("%Y-%m-%d %H:%M"), "姓名": name, "性別": gender, "年齡": age, "所屬校隊": current_team, "BMI": bmi, "總分": total, "仰臥起坐": v1, "體前彎": v2, "手握力": v3, "9分鐘耐力跑": v4}])
@@ -205,6 +236,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
