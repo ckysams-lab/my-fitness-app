@@ -173,11 +173,19 @@ if data:
                     st.write("✨ **總分榮譽榜**")
                     st.table(all_db.nlargest(5, '總分')[['姓名', '總分', '所屬校隊']])
                 with h2:
-                    st.write("🏃 **各項第一名**")
-                    best_run = all_db.loc[all_db['9分鐘耐力跑'].idxmax()]
+                    st.write("🔥 **單項最強王者**")
+                    # 找出四個單項的最高分紀錄
+                    # idxmax() 會回傳該列最大值所在的索引位置
+                    best_situp = all_db.loc[all_db['仰臥起坐'].idxmax()]
+                    best_reach = all_db.loc[all_db['體前彎'].idxmax()]
                     best_grip = all_db.loc[all_db['手握力'].idxmax()]
-                    st.success(f"🏃 耐力王：{best_run['姓名']} ({best_run['9分鐘耐力跑']}m)")
+                    best_run = all_db.loc[all_db['9分鐘耐力跑'].idxmax()]
+                    
+                    # 使用不同顏色的 success/warning/info/error 框來區分榮譽
+                    st.success(f"🧱 核心王：{best_situp['姓名']} ({int(best_situp['仰臥起坐'])}次)")
+                    st.warning(f"🤸 柔軟王：{best_reach['姓名']} ({int(best_reach['體前彎'])}cm)")
                     st.info(f"💪 力量王：{best_grip['姓名']} ({best_grip['手握力']}kg)")
+                    st.error(f"🏃 耐力王：{best_run['姓名']} ({int(best_run['9分鐘耐力跑'])}m)")
                 
                 # 2. 校隊平均分柱狀圖
                 st.divider()
@@ -185,6 +193,7 @@ if data:
                 st.bar_chart(all_db.groupby("所屬校隊")["總分"].mean())
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
