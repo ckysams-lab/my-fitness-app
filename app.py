@@ -75,6 +75,7 @@ if data:
 
         # D. 自動同步至 Google Sheets
         try:
+            # 建立本次要上傳的 DataFrame
             res_df = pd.DataFrame([{
                 "時間": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
                 "姓名": name, "性別": gender, "年齡": age,
@@ -82,17 +83,19 @@ if data:
                 "仰臥起坐": v1, "體前彎": v2, "手握力": v3, "耐力跑": v4
             }])
             
-            # 讀取並更新
-            existing_data = conn.read()
+            # 1. 讀取現有資料 (ttl=0 確保讀到最新狀態)
+            existing_data = conn.read(ttl=0)
+            
+            # 2. 合併資料
             updated_df = pd.concat([existing_data, res_df], ignore_index=True)
+            
+            # 3. 寫回雲端
             conn.update(data=updated_df)
             st.success("✅ 數據已自動存入雲端試算表！")
+            
         except Exception as e:
-            st.warning(f"⚠️ 雲端同步失敗，請確認標題欄位是否一致。錯誤：{e}")
-
-        # E. 下載備份
-        csv = res_df.to_csv(index=False).encode('utf-8-sig')
-        st.download_button("📥 下載本次報告 (CSV)", csv, f"{name}.csv", "text/csv")
-
-else:
-    st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
+            error_msg = str(e)
+            if "Public Spreadsheet cannot be written to" in error_msg:
+                st.error("❌ 權限不足：請至 Streamlit Cloud 的 Settings -> Data Sources 重新連結 Google Sheets 並授權編輯權限。")
+            else:
+                st.warning(f"⚠️ 同步失敗，請檢查試算表標題是否正確。錯誤：{e}")
