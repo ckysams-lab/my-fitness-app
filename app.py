@@ -42,7 +42,7 @@ if data:
         name = st.text_input("學生姓名/編號", "學生A")        
         current_team = st.selectbox(
             "目前所屬校隊", 
-            ["無", "足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "其他"]
+            ["無", "足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"]
         )
         
         st.subheader("測量數值")
@@ -161,6 +161,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
+
 
 
 
