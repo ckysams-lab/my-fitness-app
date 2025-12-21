@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from streamlit_gsheets import GSheetsConnection
 
 # 1. 頁面與連線設定
-st.set_page_config(page_title="體適能評測系統", page_icon="📊")
+st.set_page_config(page_title="體適能評測系統", page_icon="🏃‍♂️", layout="wide")
 
 # 建立雲端連線
 try:
@@ -49,9 +49,9 @@ if data:
         v3 = st.number_input("手握力 (kg)", 0.0, 50.0, 15.0)
         v4 = st.number_input("9分鐘耐力跑 (米)", 0)
         
-        submitted = st.form_submit_button("🌟 計算總成績")
+        submitted = st.form_submit_button("🌟 計算總成績並同步雲端")
 
-    # 4. 提交後的處理 (按鈕按下後才執行以下所有內容)
+    # 4. 提交後的處理
     if submitted:
         # A. 計算分數
         bmi = round(w / ((h/100)**2), 1)
@@ -61,80 +61,81 @@ if data:
         s4 = get_score(v4, gender, age, "run_9min", data)
         total = s1 + s2 + s3 + s4
 
-        # B. 根據分數決定主題色
+        # B. 根據分數決定鮮豔的主題色 (R, G, B)
         if total >= 15:
-            rank_color = "#FFD700"  # 金色
-            rank_label = "🥇 卓越 (Gold)"
+            rgb = "255, 215, 0"  # 鮮豔金
+            rank_label = "🥇 卓越 (GOLD ELITE)"
         elif total >= 10:
-            rank_color = "#C0C0C0"  # 銀色
-            rank_label = "🥈 優良 (Silver)"
+            rgb = "0, 212, 255"  # 科技藍
+            rank_label = "🥈 優良 (SILVER PRO)"
         elif total >= 8:
-            rank_color = "#CD7F32"  # 銅色
-            rank_label = "🥉 尚可 (Bronze)"
+            rgb = "255, 140, 0"  # 活力橘
+            rank_label = "🥉 尚可 (BRONZE)"
         else:
-            rank_color = "#E74C3C"  # 紅色
-            rank_label = "⚪ 待加強"
+            rgb = "255, 46, 99"  # 極限紅
+            rank_label = "⚪ 待加強 (CHALLENGER)"
 
-        # C. 專業儀表板抬頭
+        accent = f"rgb({rgb})"
+        fill = f"rgba({rgb}, 0.3)"
+
+        # C. 注入動態 CSS：讓介面變鮮豔
         st.markdown(f"""
-            <div style="background-color:{rank_color}; padding:20px; border-radius:10px; text-align:center;">
-                <h1 style="color:white; margin:0;">{name} 的體能戰報</h1>
-                <h2 style="color:white; margin:0;">{rank_label}</h2>
-            </div>
+            <style>
+            .stApp {{ background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%); color: white !important; }}
+            /* 霓虹標題卡片 */
+            .header-box {{
+                background-color: {accent};
+                padding: 20px; border-radius: 15px; text-align: center;
+                box-shadow: 0 0 20px {accent}; margin-bottom: 25px;
+            }}
+            /* 數據卡片 */
+            .metric-card {{
+                background: rgba(255,255,255,0.05); border-left: 5px solid {accent};
+                padding: 15px; border-radius: 10px;
+            }}
+            /* 強制修改進度條顏色 */
+            div[data-testid="stProgress"] > div > div > div > div {{ background-color: {accent} !important; }}
+            h1, h2, h3, p, span {{ color: white !important; }}
+            </style>
         """, unsafe_allow_html=True)
 
-        # D. 核心數據大指標
-        st.write("")
-        m_col1, m_col2, m_col3 = st.columns(3)
-        m_col1.metric("總得分", f"{total} / 20")
-        m_col2.metric("BMI 狀態", bmi, delta="正常" if 18.5 <= bmi <= 24 else "異常", delta_color="normal" if 18.5 <= bmi <= 24 else "inverse")
-        m_col3.metric("評測等級", rank_label.split(" ")[1])
+        # D. 顯示戰報抬頭
+        st.markdown(f'<div class="header-box"><h1 style="color:black !important; margin:0;">{name} 體能戰報</h1><h2 style="color:black !important; margin:0;">{rank_label}</h2></div>', unsafe_allow_html=True)
 
-        # E. 雷達圖與進度條分析 (左右並列)
+        # E. 三大指標
+        col_m1, col_m2, col_m3 = st.columns(3)
+        with col_m1: st.markdown(f'<div class="metric-card"><h4>總得分</h4><h2 style="color:{accent} !important;">{total} / 20</h2></div>', unsafe_allow_html=True)
+        with col_m2: st.markdown(f'<div class="metric-card"><h4>BMI 狀態</h4><h2 style="color:{accent} !important;">{bmi}</h2></div>', unsafe_allow_html=True)
+        with col_m3: st.markdown(f'<div class="metric-card"><h4>評測等級</h4><h2 style="color:{accent} !important;">{rank_name if "rank_name" in locals() else rank_label.split(" ")[1]}</h2></div>', unsafe_allow_html=True)
+
+        # F. 雷達圖與進度條
         st.divider()
-        g_col1, g_col2 = st.columns([1, 1])
-
-        with g_col1:
-            st.subheader("🕸️ 體能雷達圖")
+        g1, g2 = st.columns([1, 1])
+        with g1:
+            st.subheader("🕸️ 均衡度分析")
             categories = ['仰臥起坐', '坐姿體前彎', '手握力', '耐力跑']
             scores = [s1, s2, s3, s4]
-            categories_closed = categories + [categories[0]]
-            scores_closed = scores + [scores[0]]
-            
-            fig = go.Figure()
-            fig.add_trace(go.Scatterpolar(
-                r=scores_closed, theta=categories_closed, fill='toself',
-                line_color=rank_color, fillcolor=rank_color, opacity=0.6
+            fig = go.Figure(go.Scatterpolar(
+                r=scores + [scores[0]], theta=categories + [categories[0]], 
+                fill='toself', line=dict(color=accent), fillcolor=fill
             ))
-            fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), showlegend=False, height=350, margin=dict(l=40, r=40, t=20, b=20))
+            fig.update_layout(
+                polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 5], gridcolor="#444")),
+                paper_bgcolor='rgba(0,0,0,0)', showlegend=False, height=350, margin=dict(l=40, r=40, t=30, b=30)
+            )
             st.plotly_chart(fig, use_container_width=True)
 
-        with g_col2:
-            st.subheader("📊 分項強弱分析")
-            for label, score in zip(categories, scores):
-                st.write(f"**{label}** ({score}/5)")
-                st.progress(score / 5) # 自動生成運動感進度條
-
-        # F. 運動建議與同步邏輯 (其餘部分保持不變)
-        st.divider()
-        # ... (原本的自動同步與下載代碼) ...
-
         with g2:
-            st.markdown(f"### ⚡ 專項分析")
+            st.subheader("⚡ 分項強弱")
             for label, score in zip(categories, scores):
-                # 顯示標籤與分數
                 st.write(f"**{label}** : {score}/5")
-                # 使用原生進度條，它現在會被上面的 CSS 強制染成獎項顏色
                 st.progress(score / 5)
-                
+
+        # G. 運動建議與同步邏輯
         st.divider()
-
-        # D. 運動建議
         if s3 <= 2:
-            st.warning("📍 **提升上肢肌力 (手握力)**")
-            st.write("建議練習擠壓網球或使用握力器，每天每手 15 次，重複 3 組。")
+            st.warning(f"📍 **建議：** 你的手握力有待提升，建議進行抓握訓練！")
 
-        # E. 自動同步至 Google Sheets
         try:
             res_df = pd.DataFrame([{
                 "時間": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
@@ -142,22 +143,16 @@ if data:
                 "BMI": bmi, "總分": total,
                 "仰臥起坐": v1, "體前彎": v2, "手握力": v3, "9分鐘耐力跑": v4
             }])
-            
             existing_data = conn.read(ttl=0)
             updated_df = pd.concat([existing_data, res_df], ignore_index=True)
             conn.update(data=updated_df)
             st.success("✅ 數據已自動存入雲端試算表！")
-            
         except Exception as e:
-            error_msg = str(e)
-            if "Public Spreadsheet cannot be written to" in error_msg:
-                st.error("❌ 權限不足：請確認 Secrets 中的 Service Account 設定正確。")
-            else:
-                st.warning(f"⚠️ 同步失敗，請檢查試算表標題是否正確。錯誤：{e}")
+            st.warning(f"⚠️ 雲端同步失敗（但本地計算成功）：{e}")
 
-        # F. 下載備份
+        # 下載按鈕
         csv = res_df.to_csv(index=False).encode('utf-8-sig')
-        st.download_button("📥 下載本次報告 (CSV)", csv, f"{name}.csv", "text/csv")
+        st.download_button("📥 下載本次報告", csv, f"{name}.csv", "text/csv")
 
 else:
     st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
