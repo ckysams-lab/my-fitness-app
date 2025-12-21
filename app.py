@@ -110,6 +110,10 @@ if data:
     # --- I. 老師大盤分析 (解決彈走問題) ---
     st.write("---")
     with st.expander("📊 老師專屬：全校管理後台"):
+        password = st.text_input("請輸入管理員密碼", type="password")
+    if password == "1234": # 這裡設定您的密碼
+    else:
+        st.warning("請輸入正確密碼以開啟後台權限。")
         all_db = conn.read(ttl=0)
         if not all_db.empty:
             st.subheader("🏆 全校榮譽榜")
@@ -181,6 +185,7 @@ if data:
                 st.download_button("💾 下載全校期末總表 (CSV)", csv_data, f"Fitness_{datetime.now().year}.csv", "text/csv")
         else: st.info("尚無紀錄")
 else: st.error("❌ 找不到數據庫！")
+
 
 
 
