@@ -47,7 +47,7 @@ if data:
         v1 = st.number_input("仰臥起坐 (次)", 0)
         v2 = st.number_input("坐姿體前彎 (cm)", 0)
         v3 = st.number_input("手握力 (kg)", 0.0, 50.0, 15.0)
-        v4 = st.number_input("耐力跑 (米)", 0)
+        v4 = st.number_input("9分鐘耐力跑 (米)", 0)
         
         submitted = st.form_submit_button("🌟 計算並同步數據")
 
@@ -64,7 +64,7 @@ if data:
         # B. 新增：雷達圖繪製區塊
         st.subheader("📊 體適能均衡度分析")
         
-        categories = ['仰臥起坐', '坐姿體前彎', '手握力', '耐力跑']
+        categories = ['仰臥起坐', '坐姿體前彎', '手握力', '9分鐘耐力跑']
         scores = [s1, s2, s3, s4]
         
         categories_closed = categories + [categories[0]]
@@ -107,7 +107,7 @@ if data:
                 "時間": pd.Timestamp.now().strftime("%Y-%m-%d %H:%M"),
                 "姓名": name, "性別": gender, "年齡": age,
                 "BMI": bmi, "總分": total,
-                "仰臥起坐": v1, "體前彎": v2, "手握力": v3, "耐力跑": v4
+                "仰臥起坐": v1, "體前彎": v2, "手握力": v3, "9分鐘耐力跑": v4
             }])
             
             existing_data = conn.read(ttl=0)
@@ -128,4 +128,5 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
+
 
