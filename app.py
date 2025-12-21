@@ -4,7 +4,7 @@ import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
 # 建立連線 (這個會自動去 Secrets 找資料)
-conn = st.connection("gsheets", type="streamlit_gsheets")
+conn = st.connection("gsheets", type=GSheetsConnection)
 
 # --- 在 if submitted: 區塊內 ---
 if submitted:
@@ -142,3 +142,4 @@ if data:
         except Exception as e:
 
             st.warning(f"⚠️ 雲端同步失敗（可能是 Secrets 未設定或權限問題）。錯誤：{e}")
+
