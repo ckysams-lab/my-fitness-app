@@ -6,7 +6,7 @@ from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
 
 # 1. 頁面與連線設定
-st.set_page_config(page_title="小學體適能智慧評測系統 v2.0", page_icon="🏃‍♂️", layout="wide")
+st.set_page_config(page_title="正覺蓮社學校體適能智慧評測系統 v2.0", page_icon="🏃‍♂️", layout="wide")
 
 # 建立雲端連線
 try:
@@ -305,6 +305,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
