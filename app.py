@@ -220,17 +220,27 @@ if data:
                     
             with tab2:
                 team_sel = st.selectbox("請選擇要查看的隊伍：", ["足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"], key="mgr_team_sel")
-                team_members = all_db[all_db['所屬校隊'] == team_sel]
+                team_members = all_db[all_db['所屬校隊'] == team_sel].copy()
+                
                 if not team_members.empty:
                     st.write(f"目前 {team_sel} 共有 {len(team_members)} 名隊員：")
-                    st.dataframe(team_members[['姓名', '總分', 'BMI', '時間']].sort_values('總分', ascending=False), hide_index=True)
+                    
+                    # --- 定義變色函數 ---
+                    def highlight_low_scores(row):
+                        # 如果總分低於 24，背景設為深紅色，文字設為白色
+                        if row.總分 < 24:
+                            return ['background-color: #990000; color: white'] * len(row)
+                        return [''] * len(row)
+
+                    # 套用樣式並顯示
+                    styled_df = team_members[['姓名', '總分', 'BMI', '時間']].sort_values('總分', ascending=False).style.apply(highlight_low_scores, axis=1)
+                    
+                    st.dataframe(styled_df, use_container_width=True)
                 else:
                     st.warning(f"資料庫中暫無 {team_sel} 的隊員紀錄。")
-        else:
-            st.info("目前雲端資料庫尚無任何紀錄。")
-
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
