@@ -53,7 +53,7 @@ if data:
 
     # 4. 提交後的處理 (按鈕按下後才執行以下所有內容)
     if submitted:
-        # A. 分數判定與主題色設定 (改用 RGBA 格式)
+        # A. 計算分數
         bmi = round(w / ((h/100)**2), 1)
         s1 = get_score(v1, gender, age, "sit_ups", data)
         s2 = get_score(v2, gender, age, "sit_reach", data)
@@ -61,43 +61,41 @@ if data:
         s4 = get_score(v4, gender, age, "run_9min", data)
         total = s1 + s2 + s3 + s4
 
-        # 定義不同獎項的「發光色」 (R, G, B)
+        # B. 根據分數決定主題色
         if total >= 15:
-            base_rgb = "255, 215, 0"  # 鮮豔金
-            rank_name = "GOLD ELITE"
+            rank_color = "#FFD700"  # 金色
+            rank_label = "🥇 卓越 (Gold)"
         elif total >= 10:
-            base_rgb = "0, 212, 255"  # 科技藍
-            rank_name = "SILVER PRO"
+            rank_color = "#C0C0C0"  # 銀色
+            rank_label = "🥈 優良 (Silver)"
         elif total >= 8:
-            base_rgb = "255, 140, 0"  # 活力橘
-            rank_name = "BRONZE ACTIVE"
+            rank_color = "#CD7F32"  # 銅色
+            rank_label = "🥉 尚可 (Bronze)"
         else:
-            base_rgb = "255, 46, 99"  # 極限紅
-            rank_name = "CHALLENGER"
+            rank_color = "#E74C3C"  # 紅色
+            rank_label = "⚪ 待加強"
 
-        accent_color = f"rgb({base_rgb})"
-        fill_color = f"rgba({base_rgb}, 0.3)" # 設定 30% 透明度
-
-        # --- B. 注入 CSS (同步更新背景顏色引用) ---
+        # C. 專業儀表板抬頭
         st.markdown(f"""
-            <style>
-            .stApp {{ background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%); color: #FFFFFF !important; }}
-            .stats-card {{
-                background: rgba(255, 255, 255, 0.05);
-                border-left: 5px solid {accent_color};
-                padding: 20px; border-radius: 10px; margin-bottom: 20px;
-            }}
-            h1, h2, h3, span, p, label {{ color: #FFFFFF !important; }}
-            div[data-testid="stMetricValue"] {{ color: {accent_color} !important; }}
-            </style>
+            <div style="background-color:{rank_color}; padding:20px; border-radius:10px; text-align:center;">
+                <h1 style="color:white; margin:0;">{name} 的體能戰報</h1>
+                <h2 style="color:white; margin:0;">{rank_label}</h2>
+            </div>
         """, unsafe_allow_html=True)
 
-        # ... (中間標題與 Metrics 部分不變) ...
+        # D. 核心數據大指標
+        st.write("")
+        m_col1, m_col2, m_col3 = st.columns(3)
+        m_col1.metric("總得分", f"{total} / 20")
+        m_col2.metric("BMI 狀態", bmi, delta="正常" if 18.5 <= bmi <= 24 else "異常", delta_color="normal" if 18.5 <= bmi <= 24 else "inverse")
+        m_col3.metric("評測等級", rank_label.split(" ")[1])
 
-        # --- E. 圖表區塊 (修正後的 Plotly 部分) ---
+        # E. 雷達圖與進度條分析 (左右並列)
         st.divider()
-        g1, g2 = st.columns([1, 1])
-        with g1:
+        g_col1, g_col2 = st.columns([1, 1])
+
+        with g_col1:
+            st.subheader("🕸️ 體能雷達圖")
             categories = ['仰臥起坐', '坐姿體前彎', '手握力', '耐力跑']
             scores = [s1, s2, s3, s4]
             categories_closed = categories + [categories[0]]
@@ -105,23 +103,21 @@ if data:
             
             fig = go.Figure()
             fig.add_trace(go.Scatterpolar(
-                r=scores_closed,
-                theta=categories_closed,
-                fill='toself',
-                line=dict(color=accent_color), # 修正顏色設定方式
-                fillcolor=fill_color           # 修正顏色設定方式
+                r=scores_closed, theta=categories_closed, fill='toself',
+                line_color=rank_color, fillcolor=rank_color, opacity=0.6
             ))
-            fig.update_layout(
-                polar=dict(
-                    bgcolor="rgba(0,0,0,0)",
-                    radialaxis=dict(visible=True, range=[0, 5], gridcolor="#444", tickfont=dict(color="white")),
-                    angularaxis=dict(gridcolor="#444", tickfont=dict(color="white"))
-                ),
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                showlegend=False, height=350, margin=dict(l=40, r=40, t=30, b=30)
-            )
+            fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0, 5])), showlegend=False, height=350, margin=dict(l=40, r=40, t=20, b=20))
             st.plotly_chart(fig, use_container_width=True)
+
+        with g_col2:
+            st.subheader("📊 分項強弱分析")
+            for label, score in zip(categories, scores):
+                st.write(f"**{label}** ({score}/5)")
+                st.progress(score / 5) # 自動生成運動感進度條
+
+        # F. 運動建議與同步邏輯 (其餘部分保持不變)
+        st.divider()
+        # ... (原本的自動同步與下載代碼) ...
 
         with g2:
             st.markdown(f"### ⚡ 專項分析")
@@ -165,6 +161,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫！請確保 norms.json 存在。")
+
 
 
 
