@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import pandas as pd
+import plotly.graph_objects as go
 from streamlit_gsheets import GSheetsConnection
 
 # 1. 頁面與連線設定
@@ -57,9 +58,44 @@ if data:
         bmi = round(w / ((h/100)**2), 1)
         s1 = get_score(v1, gender, age, "sit_ups", data)
         s2 = get_score(v2, gender, age, "sit_reach", data)
-        s3 = get_score(v3, gender, age, "grip_strength", data) # 改成 grip_strength
+        s3 = get_score(v3, gender, age, "grip_strength", data) 
         s4 = get_score(v4, gender, age, "run_9min", data)
         total = s1 + s2 + s3 + s4
+            
+    # --- B. 新增：雷達圖繪製區塊 ---
+    st.subheader("📊 體適能均衡度分析")
+    
+    # 設定雷達圖的標籤與對應分數
+    categories = ['仰臥起坐', '坐姿體前彎', '手握力', '耐力跑']
+    scores = [s1, s2, s3, s4]
+    
+    # Plotly 需要頭尾相連，所以要把第一個點重複加在最後面
+    categories_closed = categories + [categories[0]]
+    scores_closed = scores + [scores[0]]
+
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatterpolar(
+        r=scores_closed,
+        theta=categories_closed,
+        fill='toself',
+        name='本次測量',
+        line_color='#1f77b4',
+        fillcolor='rgba(31, 119, 180, 0.3)'
+    ))
+
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 5]  # 分數範圍 0~5
+            )
+        ),
+        showlegend=False,
+        height=400
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
         
         # B. 顯示結果
         st.divider()
@@ -99,3 +135,4 @@ if data:
                 st.error("❌ 權限不足：請至 Streamlit Cloud 的 Settings -> Data Sources 重新連結 Google Sheets 並授權編輯權限。")
             else:
                 st.warning(f"⚠️ 同步失敗，請檢查試算表標題是否正確。錯誤：{e}")
+
