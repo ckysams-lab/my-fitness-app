@@ -44,7 +44,7 @@ st.divider()
 
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
-    df_all = conn.read(spreadsheet=https://docs.google.com/spreadsheets/d/1012dxtCcrg3KEvoaVEhIsiJRr3GTmx9wYEVPfHQvQXw/edit?usp=sharing, ttl="0s")
+    df_all = conn.read(spreadsheet= "https://docs.google.com/spreadsheets/d/1012dxtCcrg3KEvoaVEhIsiJRr3GTmx9wYEVPfHQvQXw/edit?usp=sharing", ttl="0s")
     
     # 1. 抓取前三欄並重新命名
     df_rank = df_all.iloc[:, :3].copy()
@@ -85,6 +85,7 @@ st.header("📌 快速功能導覽")
 c1, c2 = st.columns(2)
 c1.info("👉 請點選左側選單進入 **[📊 體適能評測]**")
 c2.warning("👉 老師請點選左側 **[🔐 老師管理後台]**")
+
 
 
 
