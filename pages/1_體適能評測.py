@@ -223,48 +223,7 @@ if data:
         except: 
             st.warning("⚠️ 同步失敗，請確認 Secrets 設定。")
 
-    # --- 老師專屬區塊 ---
-    st.write("---")
-    with st.expander("📊 老師專屬：全校管理後台"):
-        pwd = st.text_input("🔑 請輸入管理員密碼", type="password", key="admin_key")
-        if pwd == "8888":
-            try:
-                # 這裡統一改為 all_data，並確保縮排在 if pwd == "8888" 內
-                all_data = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1KNota1LPNmDtg5qIgSzKQjc_5BGvxNB8mdPO-aPCgUk/edit", ttl=0)
-                
-                if not all_data.empty:
-                    st.subheader("🏆 全校榮譽榜")
-                    h1, h2 = st.columns(2)
-                    with h1:
-                        st.write("✨ **總分 Top 5**")
-                        st.table(all_data.nlargest(5, '總分')[['姓名', '總分', '所屬校隊']])
-                    with h2:
-                        st.write("🔥 **單項最強王者**")
-                        b1 = all_data.loc[all_data['仰臥起坐'].idxmax()]
-                        st.info(f"🧱 核心王: {b1['姓名']} ({int(b1['仰臥起坐'])}次)")
-                    
-                    st.divider()
-                    st.dataframe(all_data, use_container_width=True)
-                    csv = all_data.to_csv(index=False).encode('utf-8-sig')
-                    st.download_button("💾 下載全校總表", csv, "Fitness_Report.csv", "text/csv")
-                else:
-                    st.info("尚無學生紀錄")
-            except Exception as e:
-                st.error(f"讀取失敗: {e}")
-        elif pwd != "":
-            st.error("❌ 密碼錯誤")
-
-else:
-    st.error("❌ 找不到數據庫 (norms.json)！")
-
-
-
-
-
-
-
-
-
+  
 
 
 
