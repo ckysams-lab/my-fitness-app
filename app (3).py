@@ -1,52 +1,17 @@
 import streamlit as st
-import json
 import pandas as pd
 import plotly.graph_objects as go
-from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
+from utils import load_norms, get_score # 匯入共用功能
+from streamlit_gsheets import GSheetsConnection
 
-# 1. 網頁導航與風格設定
-st.set_page_config(page_title="正覺體育人", page_icon="🏫", layout="wide")
+st.set_page_config(page_title="評測系統", layout="wide")
+st.title("🚀 智慧評測與 AI 分析")
 
-# --- 側邊導航欄：整合校園應用 ---
-with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/run.png", width=80)
-    st.title("🌐 體育資訊及工具")
-    st.markdown("---")
-    st.subheader("📌 快速導覽")
-    # 這裡可以整合學校原有的 Google 表單、官網或 PDF
-    st.page_link("https://bcklas.edu.hk/", label="🏫 學校官網", icon="🏠")
-    st.markdown("[📋 校隊報名表單](https://forms.gle/your_link)")
-    st.markdown("[📅 本月體育活動曆](https://example.com/calendar)")
-    st.divider()
-    st.info("💡 學生輸入數據後，系統會自動儲存至雲端資料庫並提供 AI 分析回饋。")
+data = load_norms()
+conn = st.connection("gsheets", type=GSheetsConnection)
 
-# 建立雲端連線
-try:
-    conn = st.connection("gsheets", type=GSheetsConnection)
-except Exception as e:
-    st.error(f"連線設定錯誤: {e}")
-
-# 2. 定義功能函數
-def load_data():
-    try:
-        with open('norms.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except:
-        return None
-
-def get_score(val, gender, age, item_key, data):
-    try:
-        thresholds = data[item_key][gender][str(age)]
-        for i, t in enumerate(thresholds):
-            if val >= t: 
-                return 10 - (i * 2)  # 滿分 10 分
-        return 0
-    except: return 0
-
-# --- 主介面 ---
-st.title("🚀 正覺蓮社學校體適能智慧評測系統")
-data = load_data()
+st.info("請在左側側邊欄切換回首頁或管理後台。")
 
 if data:
     # 3. 建立表單輸入區
@@ -318,6 +283,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
