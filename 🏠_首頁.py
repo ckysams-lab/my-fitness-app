@@ -23,11 +23,7 @@ st.markdown("""
 
 # 3. 側邊欄內容
 with st.sidebar:
-    st.markdown("### 正覺蓮社學校\n### 體育組")
-    
-    # 校徽置中縮小
-    st.markdown('<div style="text-align: center;"><img src="https://www.bclps.edu.hk/it-school/php/web_content/624/logo.png" width="100"></div>', unsafe_allow_html=True)
-    
+    st.markdown("### 正覺蓮社學校\n### 體育組")    
     st.divider()
     
     # 連結設定 (請確保這些路徑與 GitHub 一致)
@@ -56,6 +52,7 @@ st.header("📌 快速功能導覽")
 c1, c2 = st.columns(2)
 c1.info("👉 請點選左側選單進入 **[📊 體適能評測]**")
 c2.warning("👉 老師請點選左側 **[🔐 老師管理後台]**")
+
 
 
 
