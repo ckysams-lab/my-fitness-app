@@ -18,6 +18,7 @@ with st.sidebar:
     st.page_link("🏠_首頁.py", label="首頁", icon="🏠")
     st.page_link("pages/1_體適能評測.py", label="學生評測", icon="📊")
     st.page_link("pages/02_admin.py", label="管理後台", icon="🔐")
+    st.page_link("pages/03_equipment.py", label="器材管理", icon="🏸")
 
 st.title("🔐 全校體適能數據管理")
 
