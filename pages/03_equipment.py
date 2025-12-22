@@ -16,7 +16,6 @@ st.markdown("""
 
 with st.sidebar:
     st.markdown('<p class="sidebar-title">正覺蓮社學校<br>體育組</p>', unsafe_allow_html=True)
-    st.markdown('<div style="text-align: center;"><img src="https://www.bclps.edu.hk/it-school/php/web_content/624/logo.png" width="100"></div>', unsafe_allow_html=True)
     st.divider()
     st.page_link("🏠_首頁.py", label="首頁", icon="🏠")
     st.page_link("pages/1_體適能評測.py", label="體適能評測", icon="📊")
@@ -36,7 +35,7 @@ if pwd == "8888":
     
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
-        df = conn.read(spreadsheet=sheet_url, ttl="0s")
+        df = conn.read(spreadsheet=https://docs.google.com/spreadsheets/d/1AcO-acwC1Or1p_tKsy_JWx1furOaugpSoVkV15OZDcE/edit?usp=sharing, ttl="0s")
         
         # 數據清理與計算
         df['總數量'] = pd.to_numeric(df['總數量'], errors='coerce').fillna(0)
