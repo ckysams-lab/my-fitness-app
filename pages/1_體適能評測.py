@@ -223,71 +223,39 @@ if data:
         except: 
             st.warning("⚠️ 同步失敗，請確認 Secrets 設定。")
 
-    # --- 老師專屬區塊 (嚴格密碼鎖) ---
+    # --- 老師專屬區塊 ---
     st.write("---")
     with st.expander("📊 老師專屬：全校管理後台"):
         pwd = st.text_input("🔑 請輸入管理員密碼", type="password", key="admin_key")
-        
         if pwd == "8888":
-            st.success("✅ 歡迎老師登入系統")
-            all_data = conn.read(
-    spreadsheet="https://docs.google.com/spreadsheets/d/1KNota1LPNmDtg5qIgSzKQjc_5BGvxNB8mdPO-aPCgUk/edit?usp=sharing",
-    ttl=0
-)
-            
-            if not all_db.empty:
-                st.subheader("🏆 全校榮譽榜")
-                h1, h2 = st.columns(2)
-                with h1:
-                    st.write("✨ **總分 Top 5**")
-                    st.table(all_db.nlargest(5, '總分')[['姓名', '總分', '所屬校隊']])
-                with h2:
-                    st.write("🔥 **單項最強王者**")
-                    try:
-                        b1 = all_db.loc[all_db['仰臥起坐'].idxmax()]
-                        b2 = all_db.loc[all_db['體前彎'].idxmax()]
-                        b3 = all_db.loc[all_db['手握力'].idxmax()]
-                        b4 = all_db.loc[all_db['9分鐘耐力跑'].idxmax()]
-                        
-                        c1, c2 = st.columns(2)
-                        with c1:
-                            st.info(f"🧱 核心王: {b1['姓名']} ({int(b1['仰臥起坐'])}次)")
-                            st.info(f"💪 力量王: {b3['姓名']} ({b3['手握力']}kg)")
-                        with c2:
-                            st.info(f"🤸 柔軟王: {b2['姓名']} ({int(b2['體前彎'])}cm)")
-                            st.info(f"🏃 耐力王: {b4['姓名']} ({int(b4['9分鐘耐力跑'])}m)")
-                    except: st.write("數據處理中...")
-
-                st.divider()
-                t1, t2, t3 = st.tabs(["潛力新星", "校隊追蹤", "數據解析"])
-                with t1:
-                    st.write("🔍 非校隊優秀學生：")
-                    st.dataframe(all_db[all_db['所屬校隊'] == "無"].nlargest(10, '總分')[['姓名', '總分', 'BMI']], hide_index=True)
-                with t2:
-                    team = st.selectbox("選擇校隊", ["足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"])
-                    st.dataframe(all_db[all_db['所屬校隊'] == team][['姓名', '總分', '時間']], use_container_width=True)
-                with t3:
-                    st.write("📊 等級分佈")
-                    def get_rank_simple(s):
-                        if s >= 32: return "🥇 卓越"
-                        if s >= 24: return "🥈 優良"
-                        return "⚪ 需加強"
-                    all_db['等級'] = all_db['總分'].apply(get_rank_simple)
-                    st.bar_chart(all_db['等級'].value_counts())
+            try:
+                # 這裡統一改為 all_data，並確保縮排在 if pwd == "8888" 內
+                all_data = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1KNota1LPNmDtg5qIgSzKQjc_5BGvxNB8mdPO-aPCgUk/edit", ttl=0)
                 
-                csv = all_db.to_csv(index=False).encode('utf-8-sig')
-                st.download_button("💾 下載全校總表 (CSV)", csv, "Fitness_Report.csv", "text/csv")
-            else:
-                st.info("尚無學生紀錄")
-        elif pwd == "":
-            st.info("💡 請輸入密碼以解鎖管理功能。")
-        else:
-            st.error("❌ 密碼錯誤，拒絕訪問。")
+                if not all_data.empty:
+                    st.subheader("🏆 全校榮譽榜")
+                    h1, h2 = st.columns(2)
+                    with h1:
+                        st.write("✨ **總分 Top 5**")
+                        st.table(all_data.nlargest(5, '總分')[['姓名', '總分', '所屬校隊']])
+                    with h2:
+                        st.write("🔥 **單項最強王者**")
+                        b1 = all_data.loc[all_data['仰臥起坐'].idxmax()]
+                        st.info(f"🧱 核心王: {b1['姓名']} ({int(b1['仰臥起坐'])}次)")
+                    
+                    st.divider()
+                    st.dataframe(all_data, use_container_width=True)
+                    csv = all_data.to_csv(index=False).encode('utf-8-sig')
+                    st.download_button("💾 下載全校總表", csv, "Fitness_Report.csv", "text/csv")
+                else:
+                    st.info("尚無學生紀錄")
+            except Exception as e:
+                st.error(f"讀取失敗: {e}")
+        elif pwd != "":
+            st.error("❌ 密碼錯誤")
 
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
-
-
 
 
 
