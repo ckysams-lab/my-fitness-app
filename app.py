@@ -6,12 +6,12 @@ from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
 
 # 1. 網頁導航與風格設定
-st.set_page_config(page_title="正覺蓮社學校體適能門戶", page_icon="🏫", layout="wide")
+st.set_page_config(page_title="正覺體育人", page_icon="🏫", layout="wide")
 
 # --- 側邊導航欄：整合校園應用 ---
 with st.sidebar:
     st.image("https://img.icons8.com/fluency/96/run.png", width=80)
-    st.title("🌐 校園體育門戶")
+    st.title("🌐 體育資訊及工具")
     st.markdown("---")
     st.subheader("📌 快速導覽")
     # 這裡可以整合學校原有的 Google 表單、官網或 PDF
@@ -318,6 +318,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
