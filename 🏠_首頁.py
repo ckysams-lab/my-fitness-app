@@ -42,46 +42,42 @@ with col_v2:
 
 st.divider()
 
-# --- 讀取 Google Sheets 數據 ---
-sheet_url = "https://docs.google.com/spreadsheets/d/1012dxtCcrg3KEvoaVEhIsiJRr3GTmx9wYEVPfHQvQXw/edit?usp=sharing"
+# 4. 壁球排名榜區塊 (使用獨立的 try 塊)
+st.header("🏆 壁球隊成員排名榜 (Top 8)")
+
+sheet_url = "https://docs.google.com/spreadsheets/d/1012dxtCcrg3KEvoaVEhIsiJRr3GTmx9wYEVPfHQvQXw/edit?usp=sharing" 
 
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
-    # 讀取整張表
-    df_all = conn.read(spreadsheet=sheet_url)
+    df_all = conn.read(spreadsheet=sheet_url, ttl="0s") # ttl=0s 確保每次重新整理都讀最新數據
     
-    # 【核心修正】不靠欄位名稱，靠位置來抓前三欄
-    # iloc[:, :3] 代表抓取所有行，以及第 0, 1, 2 欄
+    # 抓取前三欄並重新命名
     df_rank = df_all.iloc[:, :3].copy()
-    
-    # 強制重新命名這三欄，確保後續代碼不會出錯
     df_rank.columns = ['排名', '姓名', '積分']
     
-    # 確保積分是數字格式 (防止 Google Sheets 把它讀成文字)
+    # 轉換數字並排序
     df_rank['積分'] = pd.to_numeric(df_rank['積分'], errors='coerce')
-    
-    # 排序並取前 8 名
     df_rank = df_rank.sort_values(by="積分", ascending=False).head(8).reset_index(drop=True)
     
-    # 加入獎牌圖示
+    # 加入獎牌
     def add_medal(i):
         if i == 0: return "🥇 1"
         if i == 1: return "🥈 2"
         if i == 2: return "🥉 3"
         return str(i+1)
-    
-    df_rank['顯示排名'] = [add_medal(i) for i in range(len(df_rank))]
+    df_rank['排名'] = [add_medal(i) for i in range(len(df_rank))]
     
     # 顯示表格
-    col_table, col_note = st.columns([1.5, 1])
-    with col_table:
-        # 最終顯示：只取我們定義好的欄位
-        display_df = df_rank[['顯示排名', '姓名', '積分']].rename(columns={'顯示排名': '排名'})
-        st.table(display_df.set_index('排名'))
-        
+    col_t, col_n = st.columns([1.5, 1])
+    with col_t:
+        st.table(df_rank[['排名', '姓名', '積分']].set_index('排名'))
+    with col_n:
+        st.info("💡 排名根據最新校內賽積分自動更新。")
+        st.success("🔥 努力訓練，進入前八強！")
+
 except Exception as e:
-    st.error("⚠️ 無法載入排名數據，請檢查 Google Sheets 格式。")
-    # st.write(f"除錯資訊: {e}") # 如果想看具體報錯可取消註解
+    # 如果讀取失敗，只在這裡顯示警告，不影響整個頁面
+    st.warning("⚠️ 排名榜數據暫時無法載入，請確認 Google Sheets 共用權限。")
 
 st.divider()
 
@@ -90,6 +86,7 @@ st.header("📌 快速功能導覽")
 c1, c2 = st.columns(2)
 c1.info("👉 請點選左側選單進入 **[📊 體適能評測]**")
 c2.warning("👉 老師請點選左側 **[🔐 老師管理後台]**")
+
 
 
 
