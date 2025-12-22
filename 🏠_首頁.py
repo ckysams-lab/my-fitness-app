@@ -21,11 +21,6 @@ st.markdown("""
         [data-testid="stSidebar"] a {
             font-size: 20px !important;
         }
-
-        /* 4. 放大 Emoji (🏆) 的大小 */
-        [data-testid="stSidebar"] .stMarkdown p {
-            font-size: 24px;
-        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -39,7 +34,7 @@ st.markdown("""
 # 3. 側邊欄設定 (請確保這裡的縮排完全整齊)
 with st.sidebar:
     st.markdown("### 正覺蓮社學校 體育組")
-    st.markdown("🏆")
+    st.image("香海正覺蓮社佛教正覺蓮社學校.jpg", use_container_width=True)
     st.divider()
     
     # 手動放置頁面選單 (請確保 GitHub 上的 pages 裡面檔案叫 01_fitness.py)
@@ -67,6 +62,7 @@ st.header("📌 快速功能導覽")
 c1, c2 = st.columns(2)
 c1.info("👉 請點選左側選單進入 **[📊 體適能評測]**")
 c2.warning("👉 老師請點選左側 **[🔐 老師管理後台]**")
+
 
 
 
