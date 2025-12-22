@@ -26,6 +26,7 @@ with st.sidebar:
     st.page_link("🏠_首頁.py", label="首頁", icon="🏠")
     st.page_link("pages/1_體適能評測.py", label="體適能評測", icon="📊")
     st.page_link("pages/02_admin.py", label="老師管理後台", icon="🔐")
+    st.page_link("pages/03_equipment.py", label="器材管理", icon="🏸")
 
 st.set_page_config(page_title="評測系統", layout="wide")
 st.title("🚀 智慧評測與 AI 分析")
@@ -246,6 +247,7 @@ if data:
             st.warning("⚠️ 同步失敗，請確認 Secrets 設定。")
 
   
+
 
 
 
