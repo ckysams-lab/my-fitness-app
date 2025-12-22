@@ -5,19 +5,16 @@ st.set_page_config(page_title="正覺體育人", page_icon="🏫", layout="wide"
 # 1. 放大側邊欄字體的 CSS
 st.markdown("""
     <style>
-        /* 1. 放大側邊欄整體的字體 (包括選單) */
         [data-testid="stSidebar"] {
-            font-size: 1.2rem; /* 預設約 1rem，您可以調大至 1.2 或 1.5 */
+            font-size: 1.2rem; /
         }
         
-        /* 2. 專門針對自定義的 Markdown 標題 (正覺蓮社...) */
         [data-testid="stSidebar"] h3 {
-            font-size: 28px !important; /* 標題放得更大一些 */
+            font-size: 28px !important; /
             font-weight: bold;
-            color: #FFD700; /* 也可以順便改顏色，例如金色 */
+            color: #FFD700; /
         }
 
-        /* 3. 放大 st.page_link 的文字大小 */
         [data-testid="stSidebar"] a {
             font-size: 20px !important;
         }
@@ -68,6 +65,7 @@ st.header("📌 快速功能導覽")
 c1, c2 = st.columns(2)
 c1.info("👉 請點選左側選單進入 **[📊 體適能評測]**")
 c2.warning("👉 老師請點選左側 **[🔐 老師管理後台]**")
+
 
 
 
