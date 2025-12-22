@@ -15,7 +15,7 @@ with st.sidebar:
     st.markdown("---")
     st.subheader("📌 快速導覽")
     # 這裡可以整合學校原有的 Google 表單、官網或 PDF
-    st.page_link("http://www.pjlss.edu.hk", label="🏫 學校官網", icon="🏠")
+    st.page_link("https://bcklas.edu.hk/", label="🏫 學校官網", icon="🏠")
     st.markdown("[📋 校隊報名表單](https://forms.gle/your_link)")
     st.markdown("[📅 本月體育活動曆](https://example.com/calendar)")
     st.divider()
@@ -318,6 +318,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
