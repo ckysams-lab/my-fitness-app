@@ -35,7 +35,7 @@ if pwd == "8888":
     
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
-        df = conn.read(spreadsheet=https://docs.google.com/spreadsheets/d/1AcO-acwC1Or1p_tKsy_JWx1furOaugpSoVkV15OZDcE/edit?usp=sharing, ttl="0s")
+        df = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1AcO-acwC1Or1p_tKsy_JWx1furOaugpSoVkV15OZDcE/edit?usp=sharing", ttl="0s")
         
         # 數據清理與計算
         df['總數量'] = pd.to_numeric(df['總數量'], errors='coerce').fillna(0)
