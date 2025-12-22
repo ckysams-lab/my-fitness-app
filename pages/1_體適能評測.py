@@ -230,7 +230,10 @@ if data:
         
         if pwd == "8888":
             st.success("✅ 歡迎老師登入系統")
-            all_db = conn.read(ttl=0)
+            all_data = conn.read(
+    spreadsheet="https://docs.google.com/spreadsheets/d/1KNota1LPNmDtg5qIgSzKQjc_5BGvxNB8mdPO-aPCgUk/edit?usp=sharing",
+    ttl=0
+)
             
             if not all_db.empty:
                 st.subheader("🏆 全校榮譽榜")
@@ -283,6 +286,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
