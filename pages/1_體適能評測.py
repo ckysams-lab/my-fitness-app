@@ -20,7 +20,6 @@ st.markdown("""
 # 3. 側邊欄內容 (必須與首頁完全一致)
 with st.sidebar:
     st.markdown('<p class="sidebar-title">正覺蓮社學校<br>體育組</p>', unsafe_allow_html=True)
-    st.markdown('<div style="text-align: center;"><img src="https://www.bclps.edu.hk/it-school/php/web_content/624/logo.png" width="100"></div>', unsafe_allow_html=True)
     st.divider()
     
     # 導航連結
@@ -247,6 +246,7 @@ if data:
             st.warning("⚠️ 同步失敗，請確認 Secrets 設定。")
 
   
+
 
 
 
