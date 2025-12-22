@@ -25,6 +25,7 @@ with st.sidebar:
     st.page_link("🏠_首頁.py", label="首頁", icon="🏠")
     st.page_link("pages/1_體適能評測.py", label="體適能評測", icon="📊")
     st.page_link("pages/02_admin.py", label="老師管理後台", icon="🔐")
+    st.page_link("pages/03_equipment.py", label="器材管理", icon="🏸")
 
 # 4. 主頁面內容
 st.title("🌟 正覺體育人：精彩瞬間")
@@ -85,6 +86,7 @@ st.header("📌 快速功能導覽")
 c1, c2 = st.columns(2)
 c1.info("👉 請點選左側選單進入 **[📊 體適能評測]**")
 c2.warning("👉 老師請點選左側 **[🔐 老師管理後台]**")
+
 
 
 
