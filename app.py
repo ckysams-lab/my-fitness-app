@@ -5,8 +5,21 @@ import plotly.graph_objects as go
 from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
 
-# 1. 頁面與連線設定
-st.set_page_config(page_title="正覺蓮社學校體適能智慧評測系統", page_icon="🏃‍♂️", layout="wide")
+# 1. 網頁導航與風格設定
+st.set_page_config(page_title="正覺蓮社學校體適能門戶", page_icon="🏫", layout="wide")
+
+# --- 側邊導航欄：整合校園應用 ---
+with st.sidebar:
+    st.image("https://img.icons8.com/fluency/96/run.png", width=80)
+    st.title("🌐 校園體育門戶")
+    st.markdown("---")
+    st.subheader("📌 快速導覽")
+    # 這裡可以整合學校原有的 Google 表單、官網或 PDF
+    st.page_link("http://www.pjlss.edu.hk", label="🏫 學校官網", icon="🏠")
+    st.markdown("[📋 校隊報名表單](https://forms.gle/your_link)")
+    st.markdown("[📅 本月體育活動曆](https://example.com/calendar)")
+    st.divider()
+    st.info("💡 學生輸入數據後，系統會自動儲存至雲端資料庫並提供 AI 分析回饋。")
 
 # 建立雲端連線
 try:
@@ -305,6 +318,7 @@ if data:
 
 else:
     st.error("❌ 找不到數據庫 (norms.json)！")
+
 
 
 
