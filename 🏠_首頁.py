@@ -72,7 +72,7 @@ try:
     with col_t:
         st.table(df_rank[['排名', '姓名', '積分']].set_index('排名'))
     with col_n:
-        st.info("💡 排名根據最新校內賽積分自動更新。")
+        st.info("💡 排名根據最新校內賽積分及校外公開賽自動更新。")
         st.success("🔥 努力訓練，進入前八強！")
 
 except Exception as e:
@@ -86,6 +86,7 @@ st.header("📌 快速功能導覽")
 c1, c2 = st.columns(2)
 c1.info("👉 請點選左側選單進入 **[📊 體適能評測]**")
 c2.warning("👉 老師請點選左側 **[🔐 老師管理後台]**")
+
 
 
 
