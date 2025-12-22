@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from streamlit_gsheets import GSheetsConnection
 
 # 1. 頁面設定
 st.set_page_config(page_title="正覺體育人", page_icon="🏫", layout="wide")
@@ -41,36 +42,38 @@ with col_v2:
 
 st.divider()
 
-# --- 第二部分：壁球隊排名榜 (新加入) ---
+# --- 讀取 Google Sheets 數據 ---
+# 請將下方的網址替換成您 Google Sheets 的「共用網址」
+sheet_url = "https://docs.google.com/spreadsheets/d/您的試算表ID/edit?usp=sharing"
+
+try:
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    # 讀取數據並只取前 8 名，按積分從高到低排序
+    df_all = conn.read(spreadsheet=sheet_url)
+    df_squash = df_all.sort_values(by="積分", ascending=False).head(8)
+    
+    # 重新整理排名顯示（加入獎牌）
+    def add_medal(i):
+        if i == 0: return "🥇 1"
+        if i == 1: return "🥈 2"
+        if i == 2: return "🥉 3"
+        return str(i+1)
+    
+    df_squash['排名'] = [add_medal(i) for i in range(len(df_squash))]
+except:
+    st.error("暫時無法讀取排名榜數據")
+    df_squash = pd.DataFrame() # 防止報錯
+
+# --- 顯示排名榜 ---
 st.header("🏆 壁球隊成員排名榜 (Top 8)")
 
-# 模擬數據 (老師以後可以從 CSV 或 Database 讀取)
-squash_data = {
-    "排名": ["🥇 1", "🥈 2", "🥉 3", "4", "5", "6", "7", "8"],
-    "隊員姓名": ["陳大文", "李小龍", "張學友", "黃金發", "周杰倫", "林俊傑", "陳奕迅", "張家輝"],
-    "積分": [950, 920, 885, 850, 820, 795, 750, 710]
-}
-df_squash = pd.DataFrame(squash_data)
-
-col_table, col_note = st.columns([1.5, 1])
-
-with col_table:
-    # 顯示排名表格，隱藏索引
-    st.table(df_squash.set_index('排名'))
-
-with col_note:
-    st.markdown("""
-    ### 📢 榜單說明
-    本排名根據以下標準計算：
-    1. **校內選拔賽** 積分 (60%)
-    2. **出席率與訓練表現** (20%)
-    3. **校際比賽** 成績 (20%)
-    
-    ---
-    **💡 小提示：**
-    前 8 名隊員將獲得代表學校參加 **下屆全港校際壁球錦標賽** 的優先資格！
-    """)
-    st.success("🔥 爭取進入前八強，為校爭光！")
+if not df_squash.empty:
+    col_table, col_note = st.columns([1.5, 1])
+    with col_table:
+        # 只顯示這三列，並隱藏索引
+        st.table(df_squash[['排名', '隊員姓名', '積分']].set_index('排名'))
+    with col_note:
+        st.success("🔥 數據已實時更新！爭取進入前八強。")
 
 st.divider()
 
@@ -79,6 +82,7 @@ st.header("📌 快速功能導覽")
 c1, c2 = st.columns(2)
 c1.info("👉 請點選左側選單進入 **[📊 體適能評測]**")
 c2.warning("👉 老師請點選左側 **[🔐 老師管理後台]**")
+
 
 
 
