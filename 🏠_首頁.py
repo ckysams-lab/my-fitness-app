@@ -6,6 +6,19 @@ from streamlit_gsheets import GSheetsConnection
 # --- 1. 頁面配置 (必須是第一行 Streamlit 指令) ---
 st.set_page_config(page_title="正覺體育人", page_icon="🏫", layout="wide")
 
+# 強制讓側邊欄保持展開狀態
+st.markdown("""
+    <style>
+        [data-testid="collapsedControl"] {
+            display: none;
+        }
+        section[data-testid="stSidebar"] {
+            width: 250px !important;
+            display: block !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- 2. 側邊欄樣式優化 ---
 st.markdown("""
     <style>
@@ -103,6 +116,7 @@ pg = st.navigation({
 
 # --- C. 啟動導航 ---
 pg.run()
+
 
 
 
