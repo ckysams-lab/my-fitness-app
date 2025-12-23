@@ -2,29 +2,16 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
+import os
 
-# ==========================================
-# 1. 核心配置 (必須是第一行，不可移動！)
-# ==========================================
+# --- 1. 核心配置 (必須是第一行) ---
 st.set_page_config(page_title="正覺體育人", page_icon="🏫", layout="wide")
-
-# ==========================================
-# 2. 強制顯示側邊欄的樣式 (保險措施)
-# ==========================================
-st.markdown("""
-    <style>
-        /* 放大側邊欄選項文字 */
-        [data-testid="stSidebarNav"] span { font-size: 18px !important; font-weight: bold; }
-        /* 確保側邊欄標頭顯眼 */
-        .sidebar-title { font-size: 24px !important; font-weight: bold; color: #FFD700; text-align: center; }
-    </style>
-""", unsafe_allow_html=True)
 
 # --- A. 頁面函式定義 ---
 def show_home():
     st.title("🌟 正覺體育人：資訊與動態")
     st.markdown("---")
-
+    
     # 設定 Google Sheet 連接
     sheet_url = "https://docs.google.com/spreadsheets/d/1012dxtCcrg3KEvoaVEhIsiJRr3GTmx9wYEVPfHQvQXw/edit?usp=sharing"
     conn = st.connection("gsheets", type=GSheetsConnection)
@@ -88,20 +75,20 @@ def show_home():
     except:
         st.warning("⚠️ 排名榜更新中...")
 
-# --- B. 導覽結構設定 ---
-# 確保您的子頁面都在 pages/ 資料夾內
-pg = st.navigation({
-    "主要選單": [
-        st.Page(show_home, title="首頁", icon="🏠"),
-        st.Page("pages/1_體適能評測.py", title="體適能評測", icon="📊"),
-        st.Page("pages/04_stars.py", title="體育之星", icon="⭐"),
-    ],
-    "管理功能": [
-        st.Page("pages/02_admin.py", title="老師管理後台", icon="🔐"),
-        st.Page("pages/03_equipment.py", title="器材管理", icon="🏸"),
-    ]
-})
-# --- C. 啟動執行 ---
+# --- B. 自動搜尋 pages 資料夾並建立導覽 ---
+# 這樣寫可以避免因為檔名有表情符號導致的讀取失敗
+pages_list = [st.Page(show_home, title="首頁", icon="🏠")]
+
+# 自動掃描 pages 資料夾內的檔案
+if os.path.exists("pages"):
+    for file in sorted(os.listdir("pages")):
+        if file.endswith(".py"):
+            # 建立分頁物件
+            title = file.replace(".py", "").split("_", 1)[-1] # 去掉數字前綴
+            pages_list.append(st.Page(os.path.join("pages", file), title=title))
+
+# --- C. 啟動導覽 ---
+pg = st.navigation(pages_list)
 pg.run()
 
 
