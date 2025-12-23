@@ -5,16 +5,6 @@ from streamlit_gsheets import GSheetsConnection
 # 1. 頁面基本設定
 st.set_page_config(page_title="體育之星", page_icon="⭐", layout="wide")
 
-# 2. 側邊欄導覽 (配合您的新編號 04)
-with st.sidebar:
-    st.markdown("### 正覺蓮社學校\n### 體育組")
-    st.divider()
-    st.page_link("🏠_首頁.py", label="首頁", icon="🏠")
-    st.page_link("pages/1_體適能評測.py", label="體適能評測", icon="📊")
-    st.page_link("pages/02_admin.py", label="老師管理後台", icon="🔐")
-    st.page_link("pages/03_equipment.py", label="器材管理", icon="🏸")
-    st.page_link("pages/04_stars.py", label="體育之星", icon="⭐")
-
 st.title("⭐ 年度體育之星")
 st.info("表揚各校隊中表現傑出的隊員，激勵學生追求卓越。")
 st.markdown("---")
