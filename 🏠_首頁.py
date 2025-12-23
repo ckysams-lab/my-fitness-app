@@ -2,19 +2,24 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
-import os
 
 # --- 1. 核心配置 (必須是第一行) ---
 st.set_page_config(page_title="正覺體育人", page_icon="🏫", layout="wide")
 
-# --- A. 頁面函式定義 ---
+# --- A. 頁面函式定義 (您原本的所有首頁功能都在這) ---
 def show_home():
     st.title("🌟 正覺體育人：資訊與動態")
     st.markdown("---")
-    
+
     # 設定 Google Sheet 連接
     sheet_url = "https://docs.google.com/spreadsheets/d/1012dxtCcrg3KEvoaVEhIsiJRr3GTmx9wYEVPfHQvQXw/edit?usp=sharing"
-    conn = st.connection("gsheets", type=GSheetsConnection)
+    
+    # 建立連接 (增加緩存處理)
+    try:
+        conn = st.connection("gsheets", type=GSheetsConnection)
+    except:
+        st.error("無法連接到 Google Sheets，請檢查 secrets 設定。")
+        return
 
     # --- 第一部分：最新動態 ---
     st.header("📢 體育組最新動態")
@@ -24,18 +29,21 @@ def show_home():
             c1, c2 = st.columns([1, 1.5])
             with c1:
                 st.subheader("⏳ 賽事倒數")
+                # 確保日期格式正確
+                df_news['日期'] = pd.to_datetime(df_news['日期'])
                 events = df_news[df_news['類型'] == '賽事']
                 for _, row in events.iterrows():
-                    target = pd.to_datetime(row['日期']).date()
+                    target = row['日期'].date()
                     diff = (target - datetime.now().date()).days
-                    if diff >= 0: st.metric(row['標題'], f"{diff} 天")
+                    if diff >= 0:
+                        st.metric(row['標題'], f"{diff} 天")
             with c2:
                 st.subheader("🗞️ 消息公告")
                 notices = df_news[df_news['類型'] == '消息'].sort_index(ascending=False)
                 for _, row in notices.head(3).iterrows():
-                    with st.expander(f"📌 {row['標題']} ({row['日期']})"):
+                    with st.expander(f"📌 {row['標題']} ({row['日期'].strftime('%Y-%m-%d')})"):
                         st.write(row['內容'])
-    except:
+    except Exception as e:
         st.info("💡 歡迎關注！最新賽事與公告整理中...")
 
     st.divider()
@@ -54,6 +62,7 @@ def show_home():
     st.header("🏆 壁球隊排名榜 (Top 8)")
     try:
         df_all = conn.read(spreadsheet=sheet_url, worksheet="ranking", ttl="0s")
+        # 自動偵測欄位 (處理可能的空格或名稱差異)
         col_rank = [c for c in df_all.columns if '排名' in c][0]
         col_name = [c for c in df_all.columns if '姓名' in c][0]
         col_score = [c for c in df_all.columns if '積分' in c][0]
@@ -75,24 +84,22 @@ def show_home():
     except:
         st.warning("⚠️ 排名榜更新中...")
 
-# --- B. 自動搜尋 pages 資料夾並建立導覽 ---
-# 這樣寫可以避免因為檔名有表情符號導致的讀取失敗
-pages_list = [st.Page(show_home, title="首頁", icon="🏠")]
+# --- B. 導覽結構設定 ---
+# 這裡我們手動對接「改名後」的檔案路徑
+pg = st.navigation({
+    "主要選單": [
+        st.Page(show_home, title="首頁", icon="🏠"),
+        st.Page("pages/fitness_test.py", title="體適能評測", icon="📊"),
+        st.Page("pages/stars.py", title="體育之星", icon="⭐"),
+    ],
+    "管理功能": [
+        st.Page("pages/admin.py", title="老師管理後台", icon="🔐"),
+        st.Page("pages/equipment.py", title="器材管理", icon="🏸"),
+    ]
+})
 
-# 自動掃描 pages 資料夾內的檔案
-if os.path.exists("pages"):
-    for file in sorted(os.listdir("pages")):
-        if file.endswith(".py"):
-            # 建立分頁物件
-            title = file.replace(".py", "").split("_", 1)[-1] # 去掉數字前綴
-            pages_list.append(st.Page(os.path.join("pages", file), title=title))
-
-# --- C. 啟動導覽 ---
-pg = st.navigation(pages_list)
+# --- C. 啟動執行 ---
 pg.run()
-
-
-
 
 
 
