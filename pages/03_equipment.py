@@ -14,14 +14,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-with st.sidebar:
-    st.markdown('<p class="sidebar-title">正覺蓮社學校<br>體育組</p>', unsafe_allow_html=True)
-    st.divider()
-    st.page_link("🏠_首頁.py", label="首頁", icon="🏠")
-    st.page_link("pages/1_體適能評測.py", label="體適能評測", icon="📊")
-    st.page_link("pages/02_admin.py", label="老師管理後台", icon="🔐")
-    st.page_link("pages/03_equipment.py", label="器材管理", icon="🏸")
-
 # 3. 主內容區
 st.title("🏸 體育器材管理中心")
 
