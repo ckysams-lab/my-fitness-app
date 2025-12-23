@@ -60,8 +60,10 @@ try:
         for _, row in notices.head(3).iterrows():
             with st.expander(f"📌 {row['標題']} ({row['日期']})"):
                 st.write(row['內容'])
-except:
-    st.info("💡）
+# --- 修正第 64 行附近的代碼 ---
+except Exception as e:
+    st.info("💡 歡迎關注！最新賽事倒數與公告整理中...")  # 確保這行結尾有引號與括號
+
 
 
 
