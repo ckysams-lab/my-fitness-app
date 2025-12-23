@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
-# 1. 頁面設定
-st.set_page_config(page_title="器材管理系統", layout="wide")
-
 # 2. 側邊欄 (保持全站統一)
 st.markdown("""
     <style>
