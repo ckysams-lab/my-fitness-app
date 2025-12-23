@@ -2,9 +2,7 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
-st.set_page_config(page_title="老師管理後台", layout="wide")
-
-# 側邊欄樣式 (與首頁保持一致)
+# --- 1. 樣式設定 (僅保留字體放大，剷除隱藏側邊欄的 CSS) ---
 st.markdown("""
     <style>
         [data-testid="stSidebar"] a { font-size: 20px !important; }
@@ -14,7 +12,8 @@ st.markdown("""
 
 st.title("🔐 全校體適能數據管理")
 
-# 嚴格密碼鎖
+# --- 2. 嚴格密碼鎖 ---
+# 提示：為了美觀，您可以考慮將密碼框放在 st.sidebar 裡
 pwd = st.text_input("請輸入管理員密碼", type="password")
 
 if pwd == "8888":
@@ -28,24 +27,35 @@ if pwd == "8888":
         # 數據概覽卡片
         col1, col2, col3 = st.columns(3)
         col1.metric("已測評人數", len(all_data))
-        col2.metric("平均總分", round(all_data['總分'].mean(), 1))
-        col3.metric("最高得分", all_data['總分'].max())
+        # 處理空值避免報錯
+        avg_score = round(all_data['總分'].mean(), 1) if '總分' in all_data.columns else 0
+        max_score = all_data['總分'].max() if '總分' in all_data.columns else 0
+        
+        col1.metric("已測評人數", len(all_data))
+        col2.metric("平均總分", avg_score)
+        col3.metric("最高得分", max_score)
         
         st.divider()
         
         # 數據篩選與表格
-        team_filter = st.multiselect("篩選校隊", options=all_data['所屬校隊'].unique(), default=all_data['所屬校隊'].unique())
-        filtered_df = all_data[all_data['所屬校隊'].isin(team_filter)]
+        if '所屬校隊' in all_data.columns:
+            teams = all_data['所屬校隊'].unique()
+            team_filter = st.multiselect("篩選校隊", options=teams, default=teams)
+            filtered_df = all_data[all_data['所屬校隊'].isin(team_filter)]
+        else:
+            filtered_df = all_data
         
         st.subheader("📋 完整數據清單")
-        st.dataframe(filtered_df, use_container_width=True)
+        st.dataframe(filtered_df, use_container_width=True, hide_index=True)
         
         # 下載功能
         csv = filtered_df.to_csv(index=False).encode('utf-8-sig')
         st.download_button("💾 下載篩選後的 CSV 報表", csv, "School_Fitness_Data.csv", "text/csv")
         
     except Exception as e:
-        st.error(f"讀取失敗：{e}")
+        st.error(f"讀取失敗，請檢查 Google Sheet 欄位名稱是否正確。")
         
 elif pwd != "":
     st.error("密碼錯誤，請重試")
+else:
+    st.info("💡 請輸入密碼以解鎖全校學生數據。")
