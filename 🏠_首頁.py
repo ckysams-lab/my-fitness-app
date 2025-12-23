@@ -85,9 +85,11 @@ pg = st.navigation({
 })
 
 # --- C. 啟動設定 ---
+# 這行必須在 pg.run() 之前
 st.set_page_config(page_title="正覺體育人", page_icon="🏫", layout="wide")
-pg.run()
 
+# 這一行是「啟動開關」，它會自動畫出 Sidebar 並執行內容
+pg.run()
 
 
 
