@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
-# 1. 頁面基本設定
-st.set_page_config(page_title="體育之星", page_icon="⭐", layout="wide")
-
 st.title("⭐ 年度體育之星")
 st.info("表揚各校隊中表現傑出的隊員，激勵學生追求卓越。")
 st.markdown("---")
