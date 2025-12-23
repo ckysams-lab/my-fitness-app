@@ -101,9 +101,9 @@ pg = st.navigation({
         st.Page("pages/03_equipment.py", title="器材管理", icon="🏸"),
     ]
 })
-
 # --- C. 啟動執行 ---
 pg.run()
+
 
 
 
