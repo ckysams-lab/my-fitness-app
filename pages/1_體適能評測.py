@@ -5,9 +5,6 @@ from datetime import datetime
 from utils import load_norms, get_score # 匯入共用功能
 from streamlit_gsheets import GSheetsConnection
 
-# 1. 頁面設定 (每個分頁都要有)
-st.set_page_config(page_title="智慧評測與 AI 分析", layout="wide")
-
 # 2. 側邊欄樣式 (確保隱藏預設選單並放大字體)
 st.markdown("""
     <style>
@@ -241,6 +238,7 @@ if data:
             st.warning("⚠️ 同步失敗，請確認 Secrets 設定。")
 
   
+
 
 
 
