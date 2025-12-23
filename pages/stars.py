@@ -12,7 +12,7 @@ st.markdown("---")
 sheet_url = "https://docs.google.com/spreadsheets/d/1012dxtCcrg3KEvoaVEhIsiJRr3GTmx9wYEVPfHQvQXw/edit?usp=sharing"
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-def get_image_url(url):
+def get_image_url(u/rl):
     """處理 Google Drive 圖片連結轉化為直連格式"""
     if pd.isna(url) or str(url).strip() == "":
         return "https://via.placeholder.com/300x400?text=No+Photo"
