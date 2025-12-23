@@ -4,20 +4,6 @@ import plotly.graph_objects as go
 from datetime import datetime
 from utils import load_norms, get_score # 匯入共用功能
 from streamlit_gsheets import GSheetsConnection
-
-# 2. 側邊欄樣式 (確保隱藏預設選單並放大字體)
-st.markdown("""
-    <style>
-        [data-testid="stSidebarNav"] {display: none;}
-        [data-testid="stSidebar"] a { font-size: 20px !important; }
-        .sidebar-title { font-size: 26px !important; font-weight: bold; color: #FFD700; text-align: center; }
-    </style>
-""", unsafe_allow_html=True)
-
-# 3. 側邊欄內容 (必須與首頁完全一致)
-with st.sidebar:
-    st.markdown('<p class="sidebar-title">正覺蓮社學校<br>體育組</p>', unsafe_allow_html=True)
-    st.divider()
     
     # 導航連結
 st.title("🚀 智慧評測與 AI 分析")
@@ -238,6 +224,7 @@ if data:
             st.warning("⚠️ 同步失敗，請確認 Secrets 設定。")
 
   
+
 
 
 
