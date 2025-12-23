@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
-# --- 1. 樣式設定 (移除隱藏側邊欄的代碼) ---
+# --- 1. 樣式設定 (重要：刪除了隱藏導航的 CSS) ---
 st.markdown("""
     <style>
         [data-testid="stSidebar"] a { font-size: 20px !important; }
@@ -13,19 +13,18 @@ st.markdown("""
 # --- 2. 主內容區 ---
 st.title("🏸 體育器材管理中心")
 
-# 密碼保護 (這裡保留 st.sidebar.text_input，它會出現在新導覽選單的下方)
+# --- 3. 側邊欄密碼保護 ---
+# 密碼框會出現在自動生成的「導覽選單」下方
 with st.sidebar:
     st.markdown('<p class="sidebar-title">管理員驗證</p>', unsafe_allow_html=True)
-    pwd = st.text_input("管理員密碼", type="password")
+    pwd = st.text_input("輸入密碼以解鎖數據", type="password")
 
 if pwd == "8888":
     st.success("權限確認：您可以進行器材盤點")
     
-    # Google Sheets 連結
-    url = "https://docs.google.com/spreadsheets/d/1AcO-acwC1Or1p_tKsy_JWx1furOaugpSoVkV15OZDcE/edit?usp=sharing"
-    
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
+        url = "https://docs.google.com/spreadsheets/d/1AcO-acwC1Or1p_tKsy_JWx1furOaugpSoVkV15OZDcE/edit?usp=sharing"
         df = conn.read(spreadsheet=url, ttl="0s")
         
         # 數據清理與計算
@@ -50,6 +49,7 @@ if pwd == "8888":
                 "器材名稱": st.column_config.TextColumn("器材名稱", width="medium"),
                 "借出數量": st.column_config.ProgressColumn(
                     "借出進度", 
+                    help="顯示借出比例",
                     min_value=0, 
                     max_value=int(df['總數量'].max() if not df.empty else 100),
                     format="%d"
@@ -64,6 +64,7 @@ if pwd == "8888":
         # --- 快速搜尋功能 ---
         search = st.text_input("🔍 快速搜尋器材 (如：足球、壁球拍)")
         if search:
+            # 增加 case=False 確保搜尋不分大小寫
             result = df[df['器材名稱'].str.contains(search, case=False, na=False)]
             st.write(result)
 
@@ -72,4 +73,4 @@ if pwd == "8888":
 
 else:
     st.warning("🔒 請在左側輸入密碼以查看詳細庫存。")
-    st.info("此頁面僅供體育組老師及體育長管理器材使用。")
+    st.info("此頁面僅供體育組老師管理器材使用。")
