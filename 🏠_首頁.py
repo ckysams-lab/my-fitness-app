@@ -87,7 +87,8 @@ try:
         return str(i+1)
     df_rank['排名標示'] = [add_medal(i) for i in range(len(df_rank))]
     
-    ct, cn = st.columns([1.5, 1
+ct, cn = st.columns([1.5, 1])
+
 
 
 
