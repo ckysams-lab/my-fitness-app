@@ -3,33 +3,24 @@ import pandas as pd
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 
-# --- 1. 頁面配置 (必須是第一行 Streamlit 指令) ---
+# ==========================================
+# 1. 核心配置 (必須是第一行，不可移動！)
+# ==========================================
 st.set_page_config(page_title="正覺體育人", page_icon="🏫", layout="wide")
 
-# 強制讓側邊欄保持展開狀態
+# ==========================================
+# 2. 強制顯示側邊欄的樣式 (保險措施)
+# ==========================================
 st.markdown("""
     <style>
-        [data-testid="collapsedControl"] {
-            display: none;
-        }
-        section[data-testid="stSidebar"] {
-            width: 250px !important;
-            display: block !important;
-        }
+        /* 放大側邊欄選項文字 */
+        [data-testid="stSidebarNav"] span { font-size: 18px !important; font-weight: bold; }
+        /* 確保側邊欄標頭顯眼 */
+        .sidebar-title { font-size: 24px !important; font-weight: bold; color: #FFD700; text-align: center; }
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. 側邊欄樣式優化 ---
-st.markdown("""
-    <style>
-        /* 放大導航選單字體 */
-        [data-testid="stSidebarNav"] span { font-size: 18px !important; font-weight: 500; }
-        /* 側邊欄標題樣式 */
-        .sidebar-title { font-size: 24px !important; font-weight: bold; color: #FFD700; text-align: center; margin-bottom: 20px; }
-    </style>
-""", unsafe_allow_html=True)
-
-# --- A. 首頁內容函式 ---
+# --- A. 頁面函式定義 ---
 def show_home():
     st.title("🌟 正覺體育人：資訊與動態")
     st.markdown("---")
@@ -46,21 +37,18 @@ def show_home():
             c1, c2 = st.columns([1, 1.5])
             with c1:
                 st.subheader("⏳ 賽事倒數")
-                # 確保日期格式正確
-                df_news['日期'] = pd.to_datetime(df_news['日期'])
                 events = df_news[df_news['類型'] == '賽事']
                 for _, row in events.iterrows():
-                    target = row['日期'].date()
+                    target = pd.to_datetime(row['日期']).date()
                     diff = (target - datetime.now().date()).days
-                    if diff >= 0:
-                        st.metric(row['標題'], f"{diff} 天")
+                    if diff >= 0: st.metric(row['標題'], f"{diff} 天")
             with c2:
                 st.subheader("🗞️ 消息公告")
-                notices = df_news[df_news['類型'] == '消息'].sort_values(by='日期', ascending=False)
+                notices = df_news[df_news['類型'] == '消息'].sort_index(ascending=False)
                 for _, row in notices.head(3).iterrows():
-                    with st.expander(f"📌 {row['標題']} ({row['日期'].strftime('%Y-%m-%d')})"):
+                    with st.expander(f"📌 {row['標題']} ({row['日期']})"):
                         st.write(row['內容'])
-    except Exception:
+    except:
         st.info("💡 歡迎關注！最新賽事與公告整理中...")
 
     st.divider()
@@ -79,7 +67,6 @@ def show_home():
     st.header("🏆 壁球隊排名榜 (Top 8)")
     try:
         df_all = conn.read(spreadsheet=sheet_url, worksheet="ranking", ttl="0s")
-        # 自動抓取包含關鍵字的欄位
         col_rank = [c for c in df_all.columns if '排名' in c][0]
         col_name = [c for c in df_all.columns if '姓名' in c][0]
         col_score = [c for c in df_all.columns if '積分' in c][0]
@@ -91,17 +78,18 @@ def show_home():
         
         def add_medal(i):
             if i == 0: return "🥇 1"
-            elif i == 1: return "🥈 2"
-            elif i == 2: return "🥉 3"
+            if i == 1: return "🥈 2"
+            if i == 2: return "🥉 3"
             return str(i+1)
-            
-        df_rank['排名'] = [add_medal(i) for i in range(len(df_rank))]
-        st.table(df_rank.set_index('排名'))
-    except Exception:
+        df_rank['顯示排名'] = [add_medal(i) for i in range(len(df_rank))]
+        
+        display_df = df_rank[['顯示排名', '姓名', '積分']].rename(columns={'顯示排名':'排名'}).set_index('排名')
+        st.table(display_df)
+    except:
         st.warning("⚠️ 排名榜更新中...")
 
-# --- B. 定義導航結構 ---
-# 這裡會自動尋找您的 pages 資料夾
+# --- B. 導覽結構設定 ---
+# 確保您的子頁面都在 pages/ 資料夾內
 pg = st.navigation({
     "主要選單": [
         st.Page(show_home, title="首頁", icon="🏠"),
@@ -114,19 +102,8 @@ pg = st.navigation({
     ]
 })
 
-# --- C. 啟動導航 ---
+# --- C. 啟動執行 ---
 pg.run()
-
-
-
-
-
-
-
-
-
-
-
 
 
 
