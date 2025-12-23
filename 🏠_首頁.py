@@ -61,7 +61,8 @@ try:
             with st.expander(f"📌 {row['標題']} ({row['日期']})"):
                 st.write(row['內容'])
 except:
-    st.info("💡
+    st.info("💡）
+
 
 
 
