@@ -2,29 +2,30 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
-# 2. 側邊欄 (保持全站統一)
+# --- 1. 樣式設定 (移除隱藏側邊欄的代碼) ---
 st.markdown("""
     <style>
-        [data-testid="stSidebarNav"] {display: none;}
         [data-testid="stSidebar"] a { font-size: 20px !important; }
         .sidebar-title { font-size: 26px !important; font-weight: bold; color: #FFD700; text-align: center; }
     </style>
 """, unsafe_allow_html=True)
 
-# 3. 主內容區
+# --- 2. 主內容區 ---
 st.title("🏸 體育器材管理中心")
 
-# 密碼保護 (只有老師能改)
-pwd = st.sidebar.text_input("管理員密碼", type="password")
+# 密碼保護 (這裡保留 st.sidebar.text_input，它會出現在新導覽選單的下方)
+with st.sidebar:
+    st.markdown('<p class="sidebar-title">管理員驗證</p>', unsafe_allow_html=True)
+    pwd = st.text_input("管理員密碼", type="password")
+
 if pwd == "8888":
     st.success("權限確認：您可以進行器材盤點")
     
-    # Google Sheets 連結 (請換成您的「器材表」連結)
-    sheet_url = "您的器材管理Google_Sheets網址"
+    # Google Sheets 連結
+    url = "https://docs.google.com/spreadsheets/d/1AcO-acwC1Or1p_tKsy_JWx1furOaugpSoVkV15OZDcE/edit?usp=sharing"
     
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
-        url = "https://docs.google.com/spreadsheets/d/1AcO-acwC1Or1p_tKsy_JWx1furOaugpSoVkV15OZDcE/edit?usp=sharing"
         df = conn.read(spreadsheet=url, ttl="0s")
         
         # 數據清理與計算
@@ -43,14 +44,12 @@ if pwd == "8888":
         # --- 器材清單 ---
         st.subheader("📦 全校器材實時清單")
         
-        # 使用自定義表格樣式
         st.dataframe(
             df,
             column_config={
                 "器材名稱": st.column_config.TextColumn("器材名稱", width="medium"),
                 "借出數量": st.column_config.ProgressColumn(
                     "借出進度", 
-                    help="顯示借出比例",
                     min_value=0, 
                     max_value=int(df['總數量'].max() if not df.empty else 100),
                     format="%d"
@@ -65,12 +64,11 @@ if pwd == "8888":
         # --- 快速搜尋功能 ---
         search = st.text_input("🔍 快速搜尋器材 (如：足球、壁球拍)")
         if search:
-            result = df[df['器材名稱'].str.contains(search)]
+            result = df[df['器材名稱'].str.contains(search, case=False, na=False)]
             st.write(result)
 
     except Exception as e:
         st.info("請在 Google Sheets 建立標題為：器材名稱、總數量、借出數量、存放位置 的表格。")
-        # st.error(e)
 
 else:
     st.warning("🔒 請在左側輸入密碼以查看詳細庫存。")
