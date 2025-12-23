@@ -82,6 +82,22 @@ try:
         if i == 2: return "🥉 3" 
         return str(i+1)
 
+# 這是原本 try 區塊的結尾
+    with cn:
+        st.info("💡 排名根據最新校內賽積分自動更新。")
+        st.success("🔥 努力訓練，進入前八強！")
+
+except Exception as e:
+    # 如果讀取數據失敗，會執行這裡
+    st.warning("⚠️ 排名數據載入中...")
+
+st.divider()
+
+# --- 第四部分：功能導覽 ---
+st.header("📌 快速功能導覽")
+f1, f2 = st.columns(2)
+f1.info("👉 學生：進入 **[📊 體適能評測]**")
+f2.warning("👉 老師：進入 **[🔐 老師管理後台]**")
 
 
 
