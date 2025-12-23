@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
+# --- 已剷除 st.set_page_config 與 sidebar 導航代碼 ---
+
 st.title("⭐ 年度體育之星")
 st.info("表揚各校隊中表現傑出的隊員，激勵學生追求卓越。")
 st.markdown("---")
@@ -71,7 +73,7 @@ try:
                             st.info(f"暫無 {team} {gender}子組資料")
                 st.divider()
         
-        # 顯示非名單內的其餘隊伍 (選做)
+        # 顯示非名單內的其餘隊伍
         other_teams = [t for t in existing_teams if t not in target_teams]
         if other_teams:
             with st.expander("查看其他校隊"):
