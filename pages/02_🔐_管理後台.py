@@ -27,7 +27,7 @@ with tab1:
     st.subheader("學生評測數據紀錄")
     try:
         # 讀取最新數據 (ttl="0s" 確保不使用緩存)
-        df = conn.read(spreadsheet=sheet_url, worksheet="data", ttl="0s")
+        df = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1KNota1LPNmDtg5qIgSzKQjc_5BGvxNB8mdPO-aPCgUk/edit?usp=sharing", worksheet="data", ttl="0s")
         
         # --- 新增：簡易篩選功能 ---
         search_q = st.text_input("🔍 搜尋學生姓名 / 編號", "")
