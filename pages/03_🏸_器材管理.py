@@ -66,9 +66,9 @@ if check_password():
                             }])
                             
                             # 讀取並更新 borrow_logs 分頁
-                            df_logs = conn.read(spreadsheet=sheet_url, worksheet="borrow_logs", ttl="0s")
+                            df_logs = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1KNota1LPNmDtg5qIgSzKQjc_5BGvxNB8mdPO-aPCgUk/edit?usp=sharing", worksheet="borrow_logs", ttl="0s")
                             updated_logs = pd.concat([df_logs, new_log], ignore_index=True)
-                            conn.update(spreadsheet=sheet_url, worksheet="borrow_logs", data=updated_logs)
+                            conn.update(spreadsheet="https://docs.google.com/spreadsheets/d/1KNota1LPNmDtg5qIgSzKQjc_5BGvxNB8mdPO-aPCgUk/edit?usp=sharing", worksheet="borrow_logs", data=updated_logs)
                             st.success(f"✅ 紀錄成功：{borrower} 已借用 {item}")
                         except:
                             st.error("⚠️ 寫入失敗，請確認 Sheets 中有 'borrow_logs' 分頁。")
@@ -77,7 +77,7 @@ if check_password():
 
         st.subheader("📋 最近借用流水賬")
         try:
-            df_show = conn.read(spreadsheet=sheet_url, worksheet="borrow_logs", ttl="0s")
+            df_show = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1KNota1LPNmDtg5qIgSzKQjc_5BGvxNB8mdPO-aPCgUk/edit?usp=sharing", worksheet="borrow_logs", ttl="0s")
             st.dataframe(df_show.tail(15), use_container_width=True, hide_index=True)
         except:
             st.info("暫無借用紀錄。")
@@ -85,7 +85,7 @@ if check_password():
     with tab2:
         st.subheader("📦 現時器材庫存")
         try:
-            df_inv = conn.read(spreadsheet=sheet_url, worksheet="inventory", ttl="0s")
+            df_inv = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1KNota1LPNmDtg5qIgSzKQjc_5BGvxNB8mdPO-aPCgUk/edit?usp=sharing", worksheet="inventory", ttl="0s")
             st.dataframe(df_inv, use_container_width=True, hide_index=True)
         except:
             st.info("請在 Google Sheets 建立 'inventory' 分頁。")
