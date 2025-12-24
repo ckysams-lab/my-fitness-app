@@ -1,14 +1,14 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-from datetime import datetime
+from datetime import datetime, timedelta
 from streamlit_gsheets import GSheetsConnection
 from utils import load_norms, get_score  # 確保 utils.py 在根目錄
 
 # 1. 頁面基本設定
 st.set_page_config(page_title="體適能評測", layout="wide")
 
-# 2. 準備環境：載入常模與連線
+# 2. 準備環境
 data = load_norms()
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
@@ -44,8 +44,11 @@ if data:
         
         submitted = st.form_submit_button("🌟 生成個人戰報並啟動 AI 分析")
 
-    # --- B. 提交後的結果顯示區域 (Result) ---
+    # --- B. 提交後的結果顯示區域 ---
     if submitted:
+        # 修正香港時間
+        hk_time = (datetime.utcnow() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M")
+        
         # 1. 核心數據計算
         bmi = round(w / ((h/100)**2), 1)
         s1 = get_score(v1, gender, age, "sit_ups", data)
@@ -63,7 +66,6 @@ if data:
         else: rgb, rank_label = "255, 46, 99", "⚪ 待加強 (CHALLENGER)"
         accent = f"rgb({rgb})"
 
-        # 注入背景與裝飾 CSS
         st.markdown(f"""
             <style>
             .stApp {{ background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%); }}
@@ -71,7 +73,7 @@ if data:
             .header-box h1 {{ color: black !important; margin: 0; font-size: 2.5rem; }}
             .badge {{ background: white; color: black !important; padding: 10px 30px; border-radius: 50px; font-weight: bold; font-size: 1.2rem; display: inline-block; margin-top: 15px; }}
             .metric-card {{ background: rgba(255,255,255,0.08); border-left: 6px solid {accent}; padding: 20px; border-radius: 12px; margin: 10px 0; }}
-            h3, h4, p, span {{ color: white !important; }}
+            h3, h4, p, span, div {{ color: white; }}
             </style>
             <div class="header-box">
                 <h1>{name} 同學的體能戰報</h1>
@@ -79,7 +81,6 @@ if data:
             </div>
         """, unsafe_allow_html=True)
 
-        # 核心數值卡片
         m1, m2, m3 = st.columns(3)
         m1.markdown(f'<div class="metric-card"><h4>總分</h4><h2 style="color:{accent}">{total} / 40</h2></div>', unsafe_allow_html=True)
         m2.markdown(f'<div class="metric-card"><h4>BMI 指數</h4><h2 style="color:{accent}">{bmi}</h2></div>', unsafe_allow_html=True)
@@ -89,14 +90,11 @@ if data:
 
         # 3. 雷達圖與分析內容
         g_col1, g_col2 = st.columns([1.2, 1])
-        
         with g_col1:
             fig = go.Figure()
             fig.add_trace(go.Scatterpolar(
-                r=scores + [scores[0]],
-                theta=categories + [categories[0]],
-                fill='toself',
-                fillcolor=f"rgba({rgb}, 0.3)",
+                r=scores + [scores[0]], theta=categories + [categories[0]],
+                fill='toself', fillcolor=f"rgba({rgb}, 0.3)",
                 line=dict(color=accent, width=4)
             ))
             fig.update_layout(
@@ -107,7 +105,7 @@ if data:
 
         with g_col2:
             st.subheader("🤖 AI 智能助教評語")
-            # 專長推薦邏輯
+            # --- 跟返你原創嘅推薦邏輯 ---
             recs = []
             if s1 >= 8: recs.append("⚽ 足球/籃球 (需要核心)")
             if s2 >= 8: recs.append("🧘 中國舞 (柔軟度優)")
@@ -116,16 +114,19 @@ if data:
             
             if recs:
                 st.success(f"🌟 **運動推薦：**\n" + "\n".join([f"- {r}" for r in recs]))
+            else:
+                st.info("💡 **發展建議：** 目前各項表現均衡，建議多嘗試不同種類運動以發掘潛能。")
             
             # 給予具體建議
-            st.info(f"💡 **訓練建議：**\n你表現最出色的是「{categories[scores.index(max(scores))]}」，建議繼續保持！對於分數較低的項目，可以每天安排 15 分鐘的專項練習。")
+            max_item = categories[scores.index(max(scores))]
+            st.info(f"💡 **訓練建議：**\n你表現最出色的是「{max_item}」，建議繼續保持！對於分數較低的項目，可以每天安排 15 分鐘的專項練習。")
 
         # 4. 數據同步雲端
         try:
             res_df = pd.DataFrame([{
-                "時間": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "姓名": name, "性別": gender, "年齡": age, "總分": total, "BMI": bmi,
-                "仰臥起坐": v1, "體前彎": v2, "手握力": v3, "9分鐘跑": v4
+                "時間": hk_time, "姓名": name, "性別": gender, "年齡": age, 
+                "總分": total, "BMI": bmi, "仰臥起坐": v1, "體前彎": v2, 
+                "手握力": v3, "9分鐘跑": v4
             }])
             existing_data = conn.read(ttl=0)
             updated_df = pd.concat([existing_data, res_df], ignore_index=True)
@@ -133,8 +134,7 @@ if data:
             st.toast("✅ 數據已雲端備份")
         except:
             st.warning("⚠️ 數據未能存檔，請確認 Secrets 設定。")
-
 else:
-    st.error("找不到常模數據庫 (norms.json)，請確認檔案路徑。")
+    st.error("找不到數據庫，請確認檔案路徑。")
 
 
