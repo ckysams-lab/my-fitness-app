@@ -14,6 +14,7 @@ with st.sidebar:
     st.page_link("pages/1_📊_體適能評測.py", label="體適能評測", icon="📊")
     st.page_link("pages/02_🔐_管理後台.py", label="老師管理後台", icon="🔐")
     st.page_link("pages/03_🏸_器材管理.py", label="器材管理", icon="🏸")
+    st.page_link("pages/04_🌟_體育之星.py", label="體育之星", icon="🌟")
 
 # --- 🔐 密碼保護邏輯 ---
 def check_password():
