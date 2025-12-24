@@ -19,7 +19,7 @@ with st.sidebar:
 st.title("🏸 體育器材管理系統")
 
 # 4. Google Sheets 連線
-sheet_url = "https://docs.google.com/spreadsheets/d/1012dxtCcrg3KEvoaVEhIsiJRr3GTmx9wYEVPfHQvQXw/edit?usp=sharing"
+sheet_url = "https://docs.google.com/spreadsheets/d/1AcO-acwC1Or1p_tKsy_JWx1furOaugpSoVkV15OZDcE/edit?usp=sharing"
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 # 5. 新增借用紀錄邏輯
@@ -45,9 +45,9 @@ with st.expander("➕ 新增借用紀錄"):
                     
                     # 讀取現有紀錄並合併 (Worksheet 名稱為 'borrow_logs')
                     # 注意：請確保你的 Google Sheet 裡面有一個分頁叫 borrow_logs
-                    df_logs = conn.read(spreadsheet=sheet_url, worksheet="borrow_logs", ttl="0s")
+                    df_logs = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1AcO-acwC1Or1p_tKsy_JWx1furOaugpSoVkV15OZDcE/edit?usp=sharing", worksheet="borrow_logs", ttl="0s")
                     updated_logs = pd.concat([df_logs, new_data], ignore_index=True)
-                    conn.update(spreadsheet=sheet_url, worksheet="borrow_logs", data=updated_logs)
+                    conn.update(spreadsheet="https://docs.google.com/spreadsheets/d/1AcO-acwC1Or1p_tKsy_JWx1furOaugpSoVkV15OZDcE/edit?usp=sharing", worksheet="borrow_logs", data=updated_logs)
                     
                     st.success(f"✅ 已紀錄：{borrower} 借用 {qty} 件 {item}")
                 except Exception as e:
@@ -59,7 +59,7 @@ with st.expander("➕ 新增借用紀錄"):
 st.subheader("📦 現時器材庫存")
 try:
     # 讀取 inventory 分頁
-    df_inv = conn.read(spreadsheet=sheet_url, worksheet="inventory", ttl="0s")
+    df_inv = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1AcO-acwC1Or1p_tKsy_JWx1furOaugpSoVkV15OZDcE/edit?usp=sharing", worksheet="inventory", ttl="0s")
     st.dataframe(df_inv, use_container_width=True, hide_index=True)
 except:
     st.info("💡 提示：請在 Google Sheets 建立一個名為 'inventory' 的分頁來管理庫存。")
@@ -67,7 +67,7 @@ except:
 # 7. 顯示借用流水賬 (方便老師查閱)
 st.subheader("📋 最近借用紀錄")
 try:
-    df_show_logs = conn.read(spreadsheet=sheet_url, worksheet="borrow_logs", ttl="0s")
+    df_show_logs = conn.read(spreadsheet="https://docs.google.com/spreadsheets/d/1AcO-acwC1Or1p_tKsy_JWx1furOaugpSoVkV15OZDcE/edit?usp=sharing", worksheet="borrow_logs", ttl="0s")
     st.dataframe(df_show_logs.tail(10), use_container_width=True, hide_index=True) # 只顯示最後 10 筆
 except:
     pass
