@@ -5,17 +5,39 @@ from datetime import datetime, timedelta
 from streamlit_gsheets import GSheetsConnection
 from utils import load_norms, get_score  # 確保 utils.py 在根目錄
 
-# 1. 頁面基本設定
-st.set_page_config(page_title="體適能評測", layout="wide")
+# 1. 頁面基本設定 (Sidebar 導航)
+st.set_page_config(page_title="正覺蓮社學校 - 體適能評測", layout="wide")
 
-# 2. 準備環境
+# 2. Sidebar 導航與 CSS
+st.markdown("""
+    <style>
+        [data-testid="stSidebarNav"] {display: none;}
+        [data-testid="stSidebar"] a { font-size: 22px !important; margin-bottom: 10px; }
+        [data-testid="stSidebar"] h3 { font-size: 28px !important; color: #FFD700; text-align: center; }
+        .stApp { background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%); }
+        .header-box { padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 30px; }
+        .header-box h1 { color: black !important; margin: 0; font-size: 2.5rem; font-weight: 800; }
+        .badge { background: white; color: black !important; padding: 10px 30px; border-radius: 50px; font-weight: bold; font-size: 1.2rem; display: inline-block; margin-top: 15px; }
+        .metric-card { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 12px; margin: 10px 0; border-left: 6px solid; }
+        h3, h4, p, span, div { color: white; }
+    </style>
+""", unsafe_allow_html=True)
+
+with st.sidebar:
+    st.markdown("### 正覺蓮社學校\n### 體育組")
+    st.divider()
+    st.page_link("🏠_首頁.py", label="首頁", icon="🏠")
+    st.page_link("pages/1_📊_體適能評測.py", label="體適能評測", icon="📊")
+    st.page_link("pages/02_🔐_管理後台.py", label="老師管理後台", icon="🔐")
+    st.page_link("pages/03_🏸_器材管理.py", label="器材管理", icon="🏸")
+
+# 3. 準備環境
 data = load_norms()
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
 except Exception as e:
     st.error(f"雲端連線異常: {e}")
 
-# 3. 頁面標題
 st.title("📊 學生體適能評測系統")
 st.markdown("請在下方輸入測驗數據，系統將自動生成 AI 分析戰報。")
 
@@ -46,8 +68,9 @@ if data:
 
     # --- B. 提交後的結果顯示區域 ---
     if submitted:
-        # 修正香港時間
-        hk_time = (datetime.utcnow() + timedelta(hours=8)).strftime("%Y-%m-%d %H:%M")
+        # 修正香港時間 (HKT)
+        hk_now = datetime.utcnow() + timedelta(hours=8)
+        hk_time_str = hk_now.strftime("%Y-%m-%d %H:%M:%S")
         
         # 1. 核心數據計算
         bmi = round(w / ((h/100)**2), 1)
@@ -59,7 +82,7 @@ if data:
         categories = ['仰臥起坐', '坐姿體前彎', '手握力', '9分鐘跑']
         scores = [s1, s2, s3, s4]
 
-        # 2. 視覺化風格定義
+        # 2. 視覺化風格與等級
         if total >= 32: rgb, rank_label = "255, 215, 0", "🥇 卓越 (GOLD)"
         elif total >= 24: rgb, rank_label = "0, 212, 255", "🥈 優良 (SILVER)"
         elif total >= 16: rgb, rank_label = "255, 140, 0", "🥉 尚可 (BRONZE)"
@@ -67,24 +90,16 @@ if data:
         accent = f"rgb({rgb})"
 
         st.markdown(f"""
-            <style>
-            .stApp {{ background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%); }}
-            .header-box {{ background-color: {accent}; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 30px; }}
-            .header-box h1 {{ color: black !important; margin: 0; font-size: 2.5rem; }}
-            .badge {{ background: white; color: black !important; padding: 10px 30px; border-radius: 50px; font-weight: bold; font-size: 1.2rem; display: inline-block; margin-top: 15px; }}
-            .metric-card {{ background: rgba(255,255,255,0.08); border-left: 6px solid {accent}; padding: 20px; border-radius: 12px; margin: 10px 0; }}
-            h3, h4, p, span, div {{ color: white; }}
-            </style>
-            <div class="header-box">
+            <div class="header-box" style="background-color: {accent};">
                 <h1>{name} 同學的體能戰報</h1>
                 <div class="badge">{rank_label}</div>
             </div>
         """, unsafe_allow_html=True)
 
         m1, m2, m3 = st.columns(3)
-        m1.markdown(f'<div class="metric-card"><h4>總分</h4><h2 style="color:{accent}">{total} / 40</h2></div>', unsafe_allow_html=True)
-        m2.markdown(f'<div class="metric-card"><h4>BMI 指數</h4><h2 style="color:{accent}">{bmi}</h2></div>', unsafe_allow_html=True)
-        m3.markdown(f'<div class="metric-card"><h4>狀態</h4><h2 style="color:{accent}">{rank_label.split()[1]}</h2></div>', unsafe_allow_html=True)
+        m1.markdown(f'<div class="metric-card" style="border-left-color:{accent}"><h4>總分</h4><h2 style="color:{accent}">{total} / 40</h2></div>', unsafe_allow_html=True)
+        m2.markdown(f'<div class="metric-card" style="border-left-color:{accent}"><h4>BMI 指數</h4><h2 style="color:{accent}">{bmi}</h2></div>', unsafe_allow_html=True)
+        m3.markdown(f'<div class="metric-card" style="border-left-color:{accent}"><h4>時間 (HKT)</h4><h2 style="color:{accent}; font-size:1.5rem;">{hk_now.strftime("%H:%M")}</h2></div>', unsafe_allow_html=True)
 
         st.divider()
 
@@ -105,35 +120,38 @@ if data:
 
         with g_col2:
             st.subheader("🤖 AI 智能助教評語")
-            # --- 跟返你原創嘅推薦邏輯 ---
+            # --- 嚴格執行你原創嘅推薦邏輯 ---
             recs = []
             if s1 >= 8: recs.append("⚽ 足球/籃球 (需要核心)")
             if s2 >= 8: recs.append("🧘 中國舞 (柔軟度優)")
             if s3 >= 8: recs.append("🏸 壁球/乒乓球 (手部爆發)")
             if s4 >= 8: recs.append("🏃 田徑 (耐力驚人)")
             
-            if recs:
-                st.success(f"🌟 **運動推薦：**\n" + "\n".join([f"- {r}" for r in recs]))
-            else:
-                st.info("💡 **發展建議：** 目前各項表現均衡，建議多嘗試不同種類運動以發掘潛能。")
-            
-            # 給予具體建議
-            max_item = categories[scores.index(max(scores))]
-            st.info(f"💡 **訓練建議：**\n你表現最出色的是「{max_item}」，建議繼續保持！對於分數較低的項目，可以每天安排 15 分鐘的專項練習。")
+            with st.container(border=True):
+                if recs:
+                    st.success(f"🌟 **運動推薦：**\n" + "\n".join([f"- {r}" for r in recs]))
+                else:
+                    st.info("💡 **發展建議：** 目前各項表現均衡，建議繼續全面發展基礎體能。")
+                
+                # 給予具體建議
+                max_item = categories[scores.index(max(scores))]
+                st.write(f"📊 **分析：** 你表現最出色的是「{max_item}」，建議保持優勢！")
 
         # 4. 數據同步雲端
         try:
             res_df = pd.DataFrame([{
-                "時間": hk_time, "姓名": name, "性別": gender, "年齡": age, 
-                "總分": total, "BMI": bmi, "仰臥起坐": v1, "體前彎": v2, 
-                "手握力": v3, "9分鐘跑": v4
+                "時間": hk_time_str, "姓名": name, "性別": gender, "年齡": age, 
+                "總分": total, "BMI": bmi, "等級": rank_label,
+                "仰臥起坐": v1, "體前彎": v2, "手握力": v3, "9分鐘跑": v4
             }])
             existing_data = conn.read(ttl=0)
             updated_df = pd.concat([existing_data, res_df], ignore_index=True)
             conn.update(data=updated_df)
-            st.toast("✅ 數據已雲端備份")
+            st.toast("✅ 數據已雲端同步")
         except:
             st.warning("⚠️ 數據未能存檔，請確認 Secrets 設定。")
+        
+        st.balloons()
 else:
     st.error("找不到數據庫，請確認檔案路徑。")
 
