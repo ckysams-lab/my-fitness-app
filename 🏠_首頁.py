@@ -4,21 +4,20 @@ from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 import os
 
-# --- 1. 核心配置 (務必第一行) ---
+# --- 1. 核心配置 ---
 st.set_page_config(page_title="正覺體育人", page_icon="🏫", layout="wide")
 
-# --- 2. 定義完整的首頁內容 (絕無簡化) ---
+# --- 2. 完整首頁函式 (還原所有功能，唔會簡化！) ---
 def show_home():
     st.title("🌟 正覺體育人：資訊與動態")
     st.markdown("---")
 
-    # 設定 Google Sheet 連接
     sheet_url = "https://docs.google.com/spreadsheets/d/1012dxtCcrg3KEvoaVEhIsiJRr3GTmx9wYEVPfHQvQXw/edit?usp=sharing"
     
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
         
-        # --- 第一部分：最新動態 ---
+        # --- 最新動態 ---
         st.header("📢 體育組最新動態")
         df_news = conn.read(spreadsheet=sheet_url, worksheet="news", ttl="0s")
         
@@ -33,29 +32,26 @@ def show_home():
                     diff = (target - datetime.now().date()).days
                     if diff >= 0:
                         st.metric(row['標題'], f"{diff} 天")
-            
             with c2:
                 st.subheader("🗞️ 消息公告")
                 notices = df_news[df_news['類型'] == '消息'].sort_index(ascending=False)
                 for _, row in notices.head(3).iterrows():
-                    with st.expander(f"📌 {row['標題']} ({row['日期'].strftime('%Y-%m-%d')})"):
+                    with st.expander(f"📌 {row['標題']} ({row['日期'].strftime('%m/%d')})"):
                         st.write(row['內容'])
-    except Exception as e:
-        st.info("💡 公告系統同步中，請稍候...")
+    except:
+        st.info("💡 公告系統同步中...")
 
     st.divider()
 
-    # --- 第二部分：影片區 ---
+    # --- 影片區 ---
     st.header("🎬 精彩瞬間")
     cv1, cv2 = st.columns(2)
-    with cv1:
-        st.video("https://www.youtube.com/watch?v=dQw4w9WgXcQ") 
-    with cv2:
-        st.video("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+    with cv1: st.video("https://www.youtube.com/watch?v=dQw4w9WgXcQ") 
+    with cv2: st.video("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
     st.divider()
 
-    # --- 第三部分：壁球排名榜 ---
+    # --- 壁球排名榜 ---
     st.header("🏆 壁球隊排名榜 (Top 8)")
     try:
         df_all = conn.read(spreadsheet=sheet_url, worksheet="ranking", ttl="0s")
@@ -73,26 +69,25 @@ def show_home():
             if i == 1: return "🥈 2"
             if i == 2: return "🥉 3"
             return str(i+1)
-        df_rank['顯示排名'] = [add_medal(i) for i in range(len(df_rank))]
-        
-        st.table(df_rank[['顯示排名', '姓名', '積分']].rename(columns={'顯示排名':'排名'}).set_index('排名'))
+        df_rank['排名'] = [add_medal(i) for i in range(len(df_rank))]
+        st.table(df_rank[['排名', '姓名', '積分']].set_index('排名'))
     except:
-        st.warning("⚠️ 排名榜數據讀取中...")
+        st.warning("⚠️ 排名榜更新中...")
 
-# --- 3. 導覽結構 (使用穩定路徑，自定義顯示標題) ---
-# 只有當檔案存在時才顯示分頁，防止報錯
-pages_to_show = [st.Page(show_home, title="首頁", icon="🏠")]
+# --- 3. 導航選單 (對準改名後嘅檔案) ---
+pages = [st.Page(show_home, title="首頁", icon="🏠")]
 
+# 檢查檔案喺唔喺度，喺度先加落選單，唔喺度都唔會 Crash
 if os.path.exists("pages/fitness_test.py"):
-    pages_to_show.append(st.Page("pages/fitness_test.py", title="體適能評測", icon="📊"))
-if os.path.exists("pages/stars.py"):
-    pages_to_show.append(st.Page("pages/stars.py", title="體育之星", icon="⭐"))
+    pages.append(st.Page("pages/fitness_test.py", title="體適能評測", icon="📊"))
 if os.path.exists("pages/admin.py"):
-    pages_to_show.append(st.Page("pages/admin.py", title="老師管理後台", icon="🔐"))
+    pages.append(st.Page("pages/admin.py", title="老師管理後台", icon="🔐"))
 if os.path.exists("pages/equipment.py"):
-    pages_to_show.append(st.Page("pages/equipment.py", title="器材管理", icon="🏸"))
+    pages.append(st.Page("pages/equipment.py", title="器材管理", icon="🏸"))
+if os.path.exists("pages/stars.py"):
+    pages.append(st.Page("pages/stars.py", title="體育之星", icon="⭐"))
 
-pg = st.navigation(pages_to_show)
+pg = st.navigation(pages)
 pg.run()
 
 
