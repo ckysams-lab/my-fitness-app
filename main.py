@@ -6,7 +6,7 @@ from streamlit_gsheets import GSheetsConnection
 # 1. 頁面設定
 st.set_page_config(page_title="正覺體育人", page_icon="🏫", layout="wide")
 
-# 2. 側邊欄樣式
+# 2. 側邊欄樣式 (尋日成功版)
 st.markdown("""
     <style>
         [data-testid="stSidebarNav"] {display: none;}
@@ -19,10 +19,11 @@ st.markdown("""
 with st.sidebar:
     st.markdown("### 正覺蓮社學校\n### 體育組")
     st.divider()
-    st.page_link("🏠_首頁.py", label="首頁", icon="🏠")
-    st.page_link("pages/1_📊_體適能評測.py", label="體適能評測", icon="📊")
-    st.page_link("pages/02_🔐_管理後台.py", label="老師管理後台", icon="🔐")
-    st.page_link("pages/03_🏸_器材管理.py", label="器材管理", icon="🏸")
+    # 🌟 檔名用英文，Label 用中文 + Emoji，咁樣就絕對唔會錯路徑
+    st.page_link("main.py", label="首頁", icon="🏠")
+    st.page_link("pages/1_fitness.py", label="體適能評測", icon="📊")
+    st.page_link("pages/2_admin.py", label="老師管理後台", icon="🔐")
+    st.page_link("pages/3_equipment.py", label="器材管理", icon="🏸")
 
 st.title("🌟 正覺體育人：資訊與動態")
 st.markdown("---")
@@ -30,7 +31,7 @@ st.markdown("---")
 sheet_url = "https://docs.google.com/spreadsheets/d/1012dxtCcrg3KEvoaVEhIsiJRr3GTmx9wYEVPfHQvQXw/edit?usp=sharing"
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# --- 🏆 壁球排名榜 (Top 8) ---
+# --- 🏆 壁球排名榜 (尋日最強🥇🥈🥉版) ---
 st.header("🏆 壁球隊排名榜 (Top 8)")
 try:
     df_all = conn.read(spreadsheet=sheet_url, worksheet="ranking", ttl="0s")
@@ -48,10 +49,9 @@ try:
         if i == 1: return "🥈 2"
         if i == 2: return "🥉 3"
         return str(i+1)
-    df_rank['顯示排名'] = [add_medal(i) for i in range(len(df_rank))]
+    df_rank['排名'] = [add_medal(i) for i in range(len(df_rank))]
     
-    display_df = df_rank[['顯示排名', '姓名', '積分']].rename(columns={'顯示排名':'排名'}).set_index('排名')
-    st.table(display_df)
+    st.table(df_rank[['排名', '姓名', '積分']].set_index('排名'))
 except:
     st.warning("⚠️ 排名榜更新中...")
 
@@ -65,13 +65,11 @@ try:
         st.subheader("⏳ 賽事倒數")
         events = df_news[df_news['類型'] == '賽事']
         for _, row in events.iterrows():
-            target = pd.to_datetime(row['日期']).date()
-            diff = (target - datetime.now().date()).days
+            diff = (pd.to_datetime(row['日期']).date() - datetime.now().date()).days
             if diff >= 0: st.metric(row['標題'], f"{diff} 天")
     with c2:
         st.subheader("🗞️ 消息公告")
-        notices = df_news[df_news['類型'] == '消息'].sort_index(ascending=False)
-        for _, row in notices.head(3).iterrows():
+        for _, row in df_news[df_news['類型'] == '消息'].head(3).iterrows():
             with st.expander(f"📌 {row['標題']}"):
                 st.write(row['內容'])
 except:
