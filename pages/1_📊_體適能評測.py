@@ -2,13 +2,13 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime
-from utils import load_norms, get_score # 確保根目錄有 utils.py
+from utils import load_norms, get_score 
 from streamlit_gsheets import GSheetsConnection
 
-# 1. 頁面設定 (還原返入嚟，唔再移走！)
+# 1. 頁面設定
 st.set_page_config(page_title="體適能評測系統", layout="wide")
 
-# 2. 側邊欄導航 (還原返入嚟，確保手動導航一致)
+# 2. 側邊欄導航
 st.markdown("""
     <style>
         [data-testid="stSidebarNav"] {display: none;}
@@ -42,7 +42,7 @@ if data is not None:
             age = st.number_input("年齡", 5, 13, 10)
         with col2:
             name = st.text_input("學生姓名/編號", "學生A")
-            current_team = st.selectbox("目前所屬校隊", ["無", "足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"])
+            current_team = st.selectbox("目前校隊", ["無", "足球隊", "壁球隊", "乒乓球隊", "籃球隊", "田徑隊", "射箭隊"])
         with col3:
             h = st.number_input("身高 (cm)", 100.0, 180.0, 140.0)
             w = st.number_input("體重 (kg)", 15.0, 90.0, 35.0)
@@ -56,7 +56,7 @@ if data is not None:
         
         submitted = st.form_submit_button("🌟 生成個人戰報並啟動 AI 分析")
 
-    # 4. 提交後的處理 (黑金戰報樣式)
+    # 4. 提交後的處理
     if submitted:
         bmi = round(w / ((h/100)**2), 1)
         s1 = get_score(v1, gender, age, "sit_ups", data)
@@ -67,19 +67,15 @@ if data is not None:
         categories = ['仰臥起坐', '坐姿體前彎', '手握力', '9分鐘耐力跑']
         scores = [s1, s2, s3, s4]
 
-        # 徽章顏色邏輯
-        if total >= 32: 
-            rgb, rank_label = "255, 215, 0", "🥇 卓越 (GOLD ELITE)"
-        elif total >= 24: 
-            rgb, rank_label = "0, 212, 255", "🥈 優良 (SILVER PRO)"
-        elif total >= 16: 
-            rgb, rank_label = "255, 140, 0", "🥉 尚可 (BRONZE)"
-        else: 
-            rgb, rank_label = "255, 46, 99", "⚪ 待加強 (CHALLENGER)"
+        # 徽章邏輯
+        if total >= 32: rgb, rank_label = "255, 215, 0", "🥇 卓越 (GOLD ELITE)"
+        elif total >= 24: rgb, rank_label = "0, 212, 255", "🥈 優良 (SILVER PRO)"
+        elif total >= 16: rgb, rank_label = "255, 140, 0", "🥉 尚可 (BRONZE)"
+        else: rgb, rank_label = "255, 46, 99", "⚪ 待加強 (CHALLENGER)"
 
         accent = f"rgb({rgb})"
         
-        # 動態 CSS 背景樣式
+        # CSS 樣式
         st.markdown(f"""
             <style>
             .stApp {{ background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%); color: white !important; }}
@@ -91,13 +87,7 @@ if data is not None:
             </style>
         """, unsafe_allow_html=True)
 
-        # 戰報頂部
-        st.markdown(f"""
-            <div class="header-box">
-                <h1>{name} 體能戰報</h1>
-                <div class="badge">{rank_label}</div>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div class="header-box"><h1>{name} 體能戰報</h1><div class="badge">{rank_label}</div></div>', unsafe_allow_html=True)
         
         m1, m2, m3 = st.columns(3)
         m1.markdown(f'<div class="metric-card"><h4>總得分</h4><h2 style="color:{accent} !important;">{total} / 40</h2></div>', unsafe_allow_html=True)
@@ -106,7 +96,28 @@ if data is not None:
 
         st.divider()
         
-        g1, g2
+        # 🌟 修正 NameError：g1, g2 必須在 submitted 區塊內
+        g1, g2 = st.columns([1.2, 1])
+        with g1:
+            fig = go.Figure()
+            fig.add_trace(go.Scatterpolar(r=scores+[scores[0]], theta=categories+[categories[0]], fill='toself', name='個人得分', line_color=accent))
+            fig.update_layout(polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 10])), paper_bgcolor='rgba(0,0,0,0)', font_color="white")
+            st.plotly_chart(fig, use_container_width=True)
+        
+        with g2:
+            st.markdown("### 🤖 AI 智能深度分析")
+            if s1 >= 8: st.write("🟢 **核心穩定性：** 表現極其優異。")
+            elif s1 < 4: st.write("🔴 **核心穩定性：** 較為薄弱。")
+            if s4 >= 8: st.write("🟢 **心肺功能：** 表現非常優秀。")
+            
+            st.markdown("---")
+            st.markdown("### 🎯 運動專長推薦")
+            if s3 >= 8: st.write("- 🏸 壁球隊 / 乒乓球隊")
+            if s4 >= 8: st.write("- 🏃 田徑隊 / 足球隊")
+        
+        st.success("✅ 數據已自動存入雲端紀錄。")
+else:
+    st.error("找不到常模標準數據 'norms'。")
 
 
 
