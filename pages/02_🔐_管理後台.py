@@ -18,7 +18,7 @@ with st.sidebar:
 st.title("🔐 老師管理後台")
 
 # 4. Google Sheets 連線設定
-sheet_url = "https://docs.google.com/spreadsheets/d/1012dxtCcrg3KEvoaVEhIsiJRr3GTmx9wYEVPfHQvQXw/edit?usp=sharing"
+sheet_url = "https://docs.google.com/spreadsheets/d/1KNota1LPNmDtg5qIgSzKQjc_5BGvxNB8mdPO-aPCgUk/edit?usp=sharing"
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 tab1, tab2 = st.tabs(["📊 數據總覽", "⚙️ 系統設定"])
