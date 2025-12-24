@@ -3,8 +3,10 @@ import pandas as pd
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 
+# 1. 頁面設定
 st.set_page_config(page_title="正覺體育人", page_icon="🏫", layout="wide")
 
+# 2. 側邊欄樣式
 st.markdown("""
     <style>
         [data-testid="stSidebarNav"] {display: none;}
@@ -17,7 +19,7 @@ st.markdown("""
 with st.sidebar:
     st.markdown("### 正覺蓮社學校\n### 體育組")
     st.divider()
-    st.page_link(".", label="首頁", icon="🏠")
+    st.page_link("🏠_首頁.py", label="首頁", icon="🏠")
     st.page_link("pages/1_📊_體適能評測.py", label="體適能評測", icon="📊")
     st.page_link("pages/02_🔐_管理後台.py", label="老師管理後台", icon="🔐")
     st.page_link("pages/03_🏸_器材管理.py", label="器材管理", icon="🏸")
@@ -28,13 +30,14 @@ st.markdown("---")
 sheet_url = "https://docs.google.com/spreadsheets/d/1012dxtCcrg3KEvoaVEhIsiJRr3GTmx9wYEVPfHQvQXw/edit?usp=sharing"
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# 🏆 壁球排名榜
+# --- 🏆 壁球排名榜 (Top 8) ---
 st.header("🏆 壁球隊排名榜 (Top 8)")
 try:
     df_all = conn.read(spreadsheet=sheet_url, worksheet="ranking", ttl="0s")
     col_rank = [c for c in df_all.columns if '排名' in c][0]
     col_name = [c for c in df_all.columns if '姓名' in c][0]
     col_score = [c for c in df_all.columns if '積分' in c][0]
+    
     df_rank = df_all[[col_rank, col_name, col_score]].copy()
     df_rank.columns = ['排名', '姓名', '積分']
     df_rank['積分'] = pd.to_numeric(df_rank['積分'], errors='coerce').fillna(0).astype(int)
@@ -47,16 +50,12 @@ try:
         return str(i+1)
     df_rank['顯示排名'] = [add_medal(i) for i in range(len(df_rank))]
     
-    ct, cn = st.columns([1.5, 1])
-    with ct:
-        display_df = df_rank[['顯示排名', '姓名', '積分']].rename(columns={'顯示排名':'排名'}).set_index('排名')
-        st.table(display_df)
-    with cn:
-        st.info("💡 排名根據最新校內賽積分自動更新。")
+    display_df = df_rank[['顯示排名', '姓名', '積分']].rename(columns={'顯示排名':'排名'}).set_index('排名')
+    st.table(display_df)
 except:
-    st.warning("⚠️ 排名榜數據更新中...")
+    st.warning("⚠️ 排名榜更新中...")
 
-# 📢 最新動態
+# --- 📢 最新動態 ---
 st.divider()
 st.header("📢 體育組最新動態")
 try:
