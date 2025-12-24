@@ -2,10 +2,28 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 from datetime import datetime
-from utils import load_norms, get_score # 確保你根目錄有 utils.py
+from utils import load_norms, get_score # 確保根目錄有 utils.py
 from streamlit_gsheets import GSheetsConnection
 
-# --- 已經移除 st.set_page_config，由首頁統一管理 ---
+# 1. 頁面設定 (還原返入嚟，唔再移走！)
+st.set_page_config(page_title="體適能評測系統", layout="wide")
+
+# 2. 側邊欄導航 (還原返入嚟，確保手動導航一致)
+st.markdown("""
+    <style>
+        [data-testid="stSidebarNav"] {display: none;}
+        [data-testid="stSidebar"] a { font-size: 22px !important; margin-bottom: 10px; }
+        [data-testid="stSidebar"] h3 { font-size: 28px !important; color: #FFD700; text-align: center; }
+    </style>
+""", unsafe_allow_html=True)
+
+with st.sidebar:
+    st.markdown("### 正覺蓮社學校\n### 體育組")
+    st.divider()
+    st.page_link("🏠_首頁.py", label="首頁", icon="🏠")
+    st.page_link("pages/1_📊_體適能評測.py", label="體適能評測", icon="📊")
+    st.page_link("pages/02_🔐_管理後台.py", label="老師管理後台", icon="🔐")
+    st.page_link("pages/03_🏸_器材管理.py", label="器材管理", icon="🏸")
 
 st.title("🚀 智慧評測與 AI 分析")
 
@@ -61,7 +79,7 @@ if data is not None:
 
         accent = f"rgb({rgb})"
         
-        # 強大嘅動態 CSS 背景樣式
+        # 動態 CSS 背景樣式
         st.markdown(f"""
             <style>
             .stApp {{ background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%); color: white !important; }}
@@ -81,10 +99,14 @@ if data is not None:
             </div>
         """, unsafe_allow_html=True)
         
-        # 顯示三大核心數據
         m1, m2, m3 = st.columns(3)
         m1.markdown(f'<div class="metric-card"><h4>總得分</h4><h2 style="color:{accent} !important;">{total} / 40</h2></div>', unsafe_allow_html=True)
-        m2.markdown(f'<div
+        m2.markdown(f'<div class="metric-card"><h4>BMI 指數</h4><h2 style="color:{accent} !important;">{bmi}</h2></div>', unsafe_allow_html=True)
+        m3.markdown(f'<div class="metric-card"><h4>目前校隊</h4><h2 style="color:{accent} !important;">{current_team}</h2></div>', unsafe_allow_html=True)
+
+        st.divider()
+        
+        g1, g2
 
 
 
