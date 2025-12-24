@@ -4,6 +4,8 @@ import plotly.graph_objects as go
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 
+# 注意：子頁面不需要 st.set_page_config，首頁有寫就可以了
+
 st.title("🚀 智慧評測與 AI 分析")
 
 # 連結 Google Sheets
@@ -32,7 +34,37 @@ with st.form("input_form"):
 
 if submitted:
     st.success(f"✅ {name} 的數據分析已完成！")
-    # 此處保留您原本的 Plotly 雷達圖邏輯...
+    
+    # --- 1. 還原 Plotly 雷達圖邏輯 ---
+    categories = ['仰臥起坐', '坐姿體前彎', '手握力', '9分鐘跑']
+    # 這裡假設一個簡單的評分邏輯 (例如 0-100 分)，你可以根據實際常模調整
+    values = [min(v1*2, 100), min(v2*2, 100), min(v3*3, 100), min(v4/20, 100)] 
+    
+    fig = go.Figure()
+    fig.add_trace(go.Scatterpolar(
+        r=values + [values[0]],
+        theta=categories + [categories[0]],
+        fill='toself',
+        name=name,
+        line_color='#FFD700'
+    ))
+
+    fig.update_layout(
+        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+        showlegend=False,
+        title=f"{name} 的體能雷達圖"
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+    # --- 2. 還原 AI 評語邏輯 ---
+    st.subheader("🤖 AI 戰術分析")
+    if v4 < 1000:
+        st.warning("💪 耐力表現有提升空間，建議加強有氧訓練。")
+    else:
+        st.success("🔥 耐力優秀！適合擔任校隊長距離項目。")
+        
+    st.info(f"💡 建議：針對「{categories[values.index(min(values))]}」進行專項強化。")
 
 
 
