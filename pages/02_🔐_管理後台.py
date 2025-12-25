@@ -29,7 +29,7 @@ def check_password():
     st.title("🔐 體育組後台登入")
     pwd_input = st.text_input("請輸入老師專用密碼", type="password")
     if st.button("確認登入"):
-        if pwd_input == "123456":  # <-- 老師可以在這裡修改密碼
+        if pwd_input == "123456":  # <-- 密碼喺呢度改
             st.session_state["password_correct"] = True
             st.rerun()
         else:
@@ -44,7 +44,6 @@ if check_password():
     sheet_url = "https://docs.google.com/spreadsheets/d/1KNota1LPNmDtg5qIgSzKQjc_5BGvxNB8mdPO-aPCgUk/edit?usp=sharing"
     conn = st.connection("gsheets", type=GSheetsConnection)
 
-    # 這裡新增了 Tab 3 用於體育之星
     tab1, tab2, tab3 = st.tabs(["📊 數據總覽", "⚙️ 系統設定", "🌟 發佈體育之星"])
 
     with tab1:
@@ -73,7 +72,7 @@ if check_password():
     with tab3:
         st.subheader("📝 發佈年度校隊體育之星")
         
-        # 請填入你的 ImgBB API Key
+        # 老師你的 ImgBB API Key 已放入
         API_KEY = "8c4237f6fd2bdbdcb8c215d0ea306e0f" 
 
         with st.form("star_upload_form", clear_on_submit=True):
@@ -90,51 +89,49 @@ if check_password():
             submit_star = st.form_submit_button("🚀 確定發佈")
 
             if submit_star:
-            if s_file and s_name and s_class and API_KEY != "你的_IMGBB_API_KEY":
-                try:
-                    with st.spinner('正在優化相片並發佈中...'):
-                        # 圖片優化
-                        img = Image.open(s_file)
-                        img.thumbnail((800, 800)) 
-                        buffer = io.BytesIO()
-                        img = img.convert("RGB")
-                        img.save(buffer, format="JPEG", quality=85)
-                        
-                        # 上傳到 ImgBB
-                        img_base64 = base64.b64encode(buffer.getvalue())
-                        res = requests.post("https://api.imgbb.com/1/upload", {"key": API_KEY, "image": img_base64})
-                        res_data = res.json()
-                        
-                        if res.status_code == 200:
-                            final_url = res_data['data']['url']
+                if s_file and s_name and s_class:
+                    try:
+                        with st.spinner('正在優化相片並發佈中...'):
+                            # 1. 圖片壓縮處理
+                            img = Image.open(s_file)
+                            img.thumbnail((800, 800)) 
+                            buffer = io.BytesIO()
+                            img = img.convert("RGB")
+                            img.save(buffer, format="JPEG", quality=85)
                             
-                            # 準備新數據
-                            new_star = pd.DataFrame([{
-                                "年度": s_year, "班別": s_class, "姓名": s_name,
-                                "所屬校隊": s_team, "獎項": s_award, "照片URL": final_url
-                            }])
+                            # 2. 上傳到 ImgBB
+                            img_base64 = base64.b64encode(buffer.getvalue())
+                            res = requests.post("https://api.imgbb.com/1/upload", {"key": API_KEY, "image": img_base64})
+                            res_data = res.json()
+                            
+                            if res.status_code == 200:
+                                final_url = res_data['data']['url']
+                                
+                                # 3. 準備寫入 Google Sheet
+                                new_star = pd.DataFrame([{
+                                    "年度": s_year, 
+                                    "班別": s_class, 
+                                    "姓名": s_name,
+                                    "所屬校隊": s_team, 
+                                    "獎項": s_award, 
+                                    "照片URL": final_url
+                                }])
 
-                            # --- 強化的寫入邏輯 ---
-                            try:
-                                # 嘗試讀取現有數據
-                                existing_df = conn.read(spreadsheet=sheet_url, worksheet="stars", ttl="0s")
-                                # 如果 Sheet 本身有嘢，就合併；冇嘢就直接用 new_star
-                                if existing_df is not None and not existing_df.empty:
-                                    updated_df = pd.concat([existing_df, new_star], ignore_index=True)
-                                else:
+                                try:
+                                    existing_df = conn.read(spreadsheet=sheet_url, worksheet="stars", ttl="0s")
+                                    if existing_df is not None and not existing_df.empty:
+                                        updated_df = pd.concat([existing_df, new_star], ignore_index=True)
+                                    else:
+                                        updated_df = new_star
+                                except:
                                     updated_df = new_star
-                            except:
-                                # 如果連分頁都讀唔到，就直接用新數據
-                                updated_df = new_star
-                            
-                            # 執行更新
-                            conn.update(spreadsheet=sheet_url, worksheet="stars", data=updated_df)
-                            
-                            st.success(f"✅ {s_name} 的資料已成功寫入 Google Sheet！")
-                            st.balloons()
-                        else:
-                            st.error(f"❌ ImgBB 上傳失敗：{res_data.get('error', {}).get('message', '未知錯誤')}")
-                except Exception as e:
-                    st.error(f"❌ 系統錯誤：{str(e)}")
-            else:
-                st.warning("⚠️ 請檢查：1. 是否已選相片 2. 是否填寫姓名 3. 是否已填 API Key")
+                                
+                                conn.update(spreadsheet=sheet_url, worksheet="stars", data=updated_df)
+                                st.success(f"✅ {s_name} 的資料已成功發佈！")
+                                st.balloons()
+                            else:
+                                st.error(f"❌ 相片上傳失敗：{res_data.get('error', {}).get('message', '未知錯誤')}")
+                    except Exception as e:
+                        st.error(f"❌ 系統錯誤：{str(e)}")
+                else:
+                    st.warning("⚠️ 請填寫姓名、班別並上傳相片。")
