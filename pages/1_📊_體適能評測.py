@@ -19,9 +19,19 @@ st.markdown("""
         .header-box { padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 30px; }
         .header-box h1 { color: white !important; margin: 0; font-size: 2.5rem; font-weight: 800; }
         .badge { background: white; color: black !important; padding: 10px 30px; border-radius: 50px; font-weight: bold; font-size: 1.2rem; display: inline-block; margin-top: 15px; }
-        .metric-card { background: rgba(255,255,255,0.08); padding: 20px; border-radius: 12px; margin: 10px 0; border-left: 6px solid; }
-        /* 還原白色文字 */
-        h3, h4, p, span, div, label { color: white !important; }
+        /* 修正後的數據卡片樣式 */
+        .metric-card { 
+            background: rgba(255,255,255,0.08); 
+            padding: 25px 20px; 
+            border-radius: 12px; 
+            margin: 10px 0; 
+            border-left: 6px solid; 
+            /* 新增下面這兩行來確保對稱 */
+            min-height: 140px; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -158,6 +168,7 @@ if data:
         st.balloons()
 else:
     st.error("找不到數據庫，請確認檔案路徑。")
+
 
 
 
