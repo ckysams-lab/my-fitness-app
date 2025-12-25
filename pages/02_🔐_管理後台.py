@@ -74,7 +74,7 @@ if check_password():
         st.subheader("📝 發佈年度校隊體育之星")
         
         # 請填入你的 ImgBB API Key
-        API_KEY = "你的_IMGBB_API_KEY" 
+        API_KEY = "8c4237f6fd2bdbdcb8c215d0ea306e0f" 
 
         with st.form("star_upload_form", clear_on_submit=True):
             col1, col2 = st.columns(2)
@@ -90,7 +90,7 @@ if check_password():
             submit_star = st.form_submit_button("🚀 確定發佈")
 
             if submit_star:
-                if s_file and s_name and s_class and API_KEY != "你的_IMGBB_API_KEY":
+                if s_file and s_name and s_class and API_KEY != "8c4237f6fd2bdbdcb8c215d0ea306e0f":
                     try:
                         with st.spinner('正在優化相片並發佈中...'):
                             # 圖片優化
