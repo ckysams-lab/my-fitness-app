@@ -90,33 +90,51 @@ if check_password():
             submit_star = st.form_submit_button("🚀 確定發佈")
 
             if submit_star:
-                if s_file and s_name and s_class and API_KEY != "8c4237f6fd2bdbdcb8c215d0ea306e0f":
-                    try:
-                        with st.spinner('正在優化相片並發佈中...'):
-                            # 圖片優化
-                            img = Image.open(s_file)
-                            img.thumbnail((800, 800)) 
-                            buffer = io.BytesIO()
-                            img = img.convert("RGB")
-                            img.save(buffer, format="JPEG", quality=85)
+            if s_file and s_name and s_class and API_KEY != "你的_IMGBB_API_KEY":
+                try:
+                    with st.spinner('正在優化相片並發佈中...'):
+                        # 圖片優化
+                        img = Image.open(s_file)
+                        img.thumbnail((800, 800)) 
+                        buffer = io.BytesIO()
+                        img = img.convert("RGB")
+                        img.save(buffer, format="JPEG", quality=85)
+                        
+                        # 上傳到 ImgBB
+                        img_base64 = base64.b64encode(buffer.getvalue())
+                        res = requests.post("https://api.imgbb.com/1/upload", {"key": API_KEY, "image": img_base64})
+                        res_data = res.json()
+                        
+                        if res.status_code == 200:
+                            final_url = res_data['data']['url']
                             
-                            # 上傳到 ImgBB
-                            img_base64 = base64.b64encode(buffer.getvalue())
-                            res = requests.post("https://api.imgbb.com/1/upload", {"key": API_KEY, "image": img_base64})
-                            final_url = res.json()['data']['url']
-                            
-                            # 寫入 Google Sheet (stars 分頁)
+                            # 準備新數據
                             new_star = pd.DataFrame([{
                                 "年度": s_year, "班別": s_class, "姓名": s_name,
                                 "所屬校隊": s_team, "獎項": s_award, "照片URL": final_url
                             }])
-                            df_stars = conn.read(spreadsheet=sheet_url, worksheet="stars", ttl="0s")
-                            updated_stars = pd.concat([df_stars, new_star], ignore_index=True)
-                            conn.update(spreadsheet=sheet_url, worksheet="stars", data=updated_stars)
+
+                            # --- 強化的寫入邏輯 ---
+                            try:
+                                # 嘗試讀取現有數據
+                                existing_df = conn.read(spreadsheet=sheet_url, worksheet="stars", ttl="0s")
+                                # 如果 Sheet 本身有嘢，就合併；冇嘢就直接用 new_star
+                                if existing_df is not None and not existing_df.empty:
+                                    updated_df = pd.concat([existing_df, new_star], ignore_index=True)
+                                else:
+                                    updated_df = new_star
+                            except:
+                                # 如果連分頁都讀唔到，就直接用新數據
+                                updated_df = new_star
                             
-                            st.success(f"✅ {s_name} 已成功發佈至體育之星！")
+                            # 執行更新
+                            conn.update(spreadsheet=sheet_url, worksheet="stars", data=updated_df)
+                            
+                            st.success(f"✅ {s_name} 的資料已成功寫入 Google Sheet！")
                             st.balloons()
-                    except:
-                        st.error("❌ 發佈失敗。請檢查 API Key 或 Sheets 是否有 'stars' 分頁。")
-                else:
-                    st.warning("⚠️ 請填妥所有資料並上傳相片。")
+                        else:
+                            st.error(f"❌ ImgBB 上傳失敗：{res_data.get('error', {}).get('message', '未知錯誤')}")
+                except Exception as e:
+                    st.error(f"❌ 系統錯誤：{str(e)}")
+            else:
+                st.warning("⚠️ 請檢查：1. 是否已選相片 2. 是否填寫姓名 3. 是否已填 API Key")
