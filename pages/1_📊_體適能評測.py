@@ -5,36 +5,54 @@ from datetime import datetime, timedelta
 from streamlit_gsheets import GSheetsConnection
 from utils import load_norms, get_score  # 確保 utils.py 在根目錄
 
-# 1. 頁面基本設定 (Sidebar 導航)
+# 1. 頁面基本設定
 st.set_page_config(page_title="正覺蓮社學校 - 體適能評測", layout="wide")
 
-# 2. Sidebar 導航與 深色科技感 CSS (已還原)
+# 2. 核心 CSS 樣式 (深色科技感 + 絕對對稱佈局)
 st.markdown("""
     <style>
+        /* 側邊欄設定 */
         [data-testid="stSidebarNav"] {display: none;}
-        [data-testid="stSidebar"] a { font-size: 22px !important; margin-bottom: 10px; }
-        [data-testid="stSidebar"] h3 { font-size: 28px !important; color: #FFD700; text-align: center; }
-        /* 還原深色背景 */
+        [data-testid="stSidebar"] a { font-size: 20px !important; margin-bottom: 8px; }
+        [data-testid="stSidebar"] h3 { font-size: 26px !important; color: #FFD700; text-align: center; }
+        
+        /* 全局深色背景 */
         .stApp { background: radial-gradient(circle, #1A1A2E 0%, #0F0F1B 100%); }
-        .header-box { padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 30px; }
-        .header-box h1 { color: white !important; margin: 0; font-size: 2.5rem; font-weight: 800; }
+        
+        /* 標題與文字顏色 */
+        h1, h2, h3, h4, p, span, div, label { color: white !important; }
+
+        /* 頂部橫幅 */
+        .header-box { padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 25px; }
+        .header-box h1 { margin: 0; font-size: 2.5rem; font-weight: 800; }
         .badge { background: white; color: black !important; padding: 10px 30px; border-radius: 50px; font-weight: bold; font-size: 1.2rem; display: inline-block; margin-top: 15px; }
-        /* 修正後的數據卡片樣式 */
+
+        /* 數據卡片基礎樣式 */
         .metric-card { 
             background: rgba(255,255,255,0.08); 
             padding: 25px 20px; 
             border-radius: 12px; 
-            margin: 10px 0; 
-            border-left: 6px solid; 
-            /* 新增下面這兩行來確保對稱 */
-            min-height: 140px; 
+            border-left: 6px solid;
+            min-height: 140px;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            text-align: left;
+        }
+        .metric-card h4 { margin: 0 !important; font-size: 1.1rem !important; opacity: 0.8; }
+        .metric-card h2 { margin: 10px 0 0 0 !important; font-size: 2.2rem !important; font-weight: bold; }
+
+        /* 表單背景美化 */
+        [data-testid="stForm"] {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
         }
     </style>
 """, unsafe_allow_html=True)
 
+# 3. Sidebar 選單
 with st.sidebar:
     st.markdown("### 🏫 正覺蓮社學校\n### 🏆 體育組")
     st.divider()
@@ -42,10 +60,9 @@ with st.sidebar:
     st.page_link("pages/1_📊_體適能評測.py", label="體適能評測", icon="📊")
     st.page_link("pages/02_🔐_管理後台.py", label="老師管理後台", icon="🔐")
     st.page_link("pages/03_🏸_器材管理.py", label="器材管理", icon="🏸")
-    # 確保這一行存在，體育之星才會出現
     st.page_link("pages/04_🌟_體育之星.py", label="體育之星", icon="🌟")
 
-# 3. 準備環境
+# 4. 準備環境
 data = load_norms()
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
@@ -82,9 +99,11 @@ if data:
 
     # --- B. 提交後的結果顯示區域 ---
     if submitted:
+        # 計算時間
         hk_now = datetime.utcnow() + timedelta(hours=8)
         hk_time_str = hk_now.strftime("%Y-%m-%d %H:%M:%S")
         
+        # 1. 核心數據計算
         bmi = round(w / ((h/100)**2), 1)
         s1 = get_score(v1, gender, age, "sit_ups", data)
         s2 = get_score(v2, gender, age, "sit_reach", data) 
@@ -94,12 +113,14 @@ if data:
         categories = ['仰臥起坐', '坐姿體前彎', '手握力', '9分鐘跑']
         scores = [s1, s2, s3, s4]
 
+        # 2. 視覺化等級判定
         if total >= 32: rgb, rank_label = "255, 215, 0", "🥇 卓越 (GOLD)"
         elif total >= 24: rgb, rank_label = "0, 212, 255", "🥈 優良 (SILVER)"
         elif total >= 16: rgb, rank_label = "255, 140, 0", "🥉 尚可 (BRONZE)"
         else: rgb, rank_label = "255, 46, 99", "⚪ 待加強 (CHALLENGER)"
         accent = f"rgb({rgb})"
 
+        # 3. 顯示戰報頭部
         st.markdown(f"""
             <div class="header-box" style="background-color: {accent};">
                 <h1 style="color: black !important;">{name} 同學的體能戰報</h1>
@@ -107,26 +128,27 @@ if data:
             </div>
         """, unsafe_allow_html=True)
 
-        m1, m2, m3 = st.columns(3)
+        # 4. 【重點】絕對對稱的數據卡片佈局
         st.markdown(f"""
-            <div style="display: flex; justify-content: space-between; gap: 20px; margin: 20px 0;">
-                <div class="metric-card" style="flex: 1; border-left-color: {accent}; margin: 0;">
+            <div style="display: flex; justify-content: space-between; gap: 20px; margin: 25px 0;">
+                <div class="metric-card" style="flex: 1; border-left-color: {accent};">
                     <h4>總分</h4>
                     <h2 style="color: {accent} !important;">{total} / 40</h2>
                 </div>
-                <div class="metric-card" style="flex: 1; border-left-color: {accent}; margin: 0;">
+                <div class="metric-card" style="flex: 1; border-left-color: {accent};">
                     <h4>BMI 指數</h4>
                     <h2 style="color: {accent} !important;">{bmi}</h2>
                 </div>
-                <div class="metric-card" style="flex: 1; border-left-color: {accent}; margin: 0;">
+                <div class="metric-card" style="flex: 1; border-left-color: {accent};">
                     <h4>時間 (HKT)</h4>
-                    <h2 style="color: {accent} !important; font-size: 2.2rem;">{hk_now.strftime("%H:%M")}</h2>
+                    <h2 style="color: {accent} !important;">{hk_now.strftime("%H:%M")}</h2>
                 </div>
             </div>
         """, unsafe_allow_html=True)
 
         st.divider()
 
+        # 5. 雷達圖與 AI 分析
         g_col1, g_col2 = st.columns([1.2, 1])
         with g_col1:
             fig = go.Figure()
@@ -137,7 +159,8 @@ if data:
             ))
             fig.update_layout(
                 polar=dict(bgcolor="rgba(0,0,0,0)", radialaxis=dict(visible=True, range=[0, 10], gridcolor="#444")),
-                paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white", size=14), height=500
+                paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white", size=14), height=500,
+                margin=dict(l=80, r=80, t=20, b=20)
             )
             st.plotly_chart(fig, use_container_width=True)
 
@@ -148,13 +171,13 @@ if data:
             else: bmi_note = "體重指標偏高，建議增加有氧運動時間，並注意飲食份量。"
 
             advice_map = {
-                "仰臥起坐": "核心肌群稍弱。建議每日進行『平板支撐』訓練，穩定脊椎並增強腹部力量。",
-                "坐姿體前彎": "柔軟度限制了你的活動範圍。建議每天運動後進行 5 分鐘下肢伸展。",
-                "手握力": "上肢爆發力有進步空間。可以嘗試多做攀爬架運動或引體上升。",
-                "9分鐘跑": "心肺耐力是運動的基石。建議每週末嘗試 15 分鐘慢跑，提升心肺功能。"
+                "仰臥起坐": "核心肌群稍弱。建議每日進行『平板支撐』訓練，增強腹部力量。",
+                "坐姿體前彎": "柔軟度限制了活動範圍。建議每天運動後進行伸展。",
+                "手握力": "上肢爆發力有進步空間。可以嘗試攀爬運動或引體上升。",
+                "9分鐘跑": "心肺耐力是基石。建議週末嘗試慢跑，提升肺活量。"
             }
 
-            scores_dict = {"仰臥起坐": s1, "坐姿體前彎": s2, "手握力": s3, "9分鐘跑": s4}
+            scores_dict = dict(zip(categories, scores))
             best_item = max(scores_dict, key=scores_dict.get)
             worst_item = min(scores_dict, key=scores_dict.get)
 
@@ -163,8 +186,9 @@ if data:
                 st.success(f"🔥 **核心優勢：** 你在「{best_item}」展現了極佳天賦！")
                 st.warning(f"🛠️ **重點突破：** 目前「{worst_item}」得分相對較低。{advice_map.get(worst_item)}")
                 st.markdown("---")
-                st.write("💡 **助教寄語：** 每天進步 1%，一年後你將煥然一新！加油！")
+                st.write("💡 **助教寄語：** 每天進步 1%，一年後你將煥然一新！")
 
+        # 6. 雲端同步
         try:
             res_df = pd.DataFrame([{
                 "時間": hk_time_str, "姓名": name, "性別": gender, "年齡": age, 
@@ -176,11 +200,11 @@ if data:
             conn.update(data=updated_df)
             st.toast("✅ 數據已雲端同步")
         except:
-            st.warning("⚠️ 數據未能存檔")
+            st.warning("⚠️ 數據暫時無法存檔，請檢查雲端連線")
         
         st.balloons()
 else:
-    st.error("找不到數據庫，請確認檔案路徑。")
+    st.error("找不到體適能常模數據 (load_norms)，請確認檔案路徑。")
 
 
 
