@@ -108,9 +108,22 @@ if data:
         """, unsafe_allow_html=True)
 
         m1, m2, m3 = st.columns(3)
-        m1.markdown(f'<div class="metric-card" style="border-left-color:{accent}"><h4>總分</h4><h2 style="color:{accent}">{total} / 40</h2></div>', unsafe_allow_html=True)
-        m2.markdown(f'<div class="metric-card" style="border-left-color:{accent}"><h4>BMI 指數</h4><h2 style="color:{accent}">{bmi}</h2></div>', unsafe_allow_html=True)
-        m3.markdown(f'<div class="metric-card" style="border-left-color:{accent}"><h4>時間 (HKT)</h4><h2 style="color:{accent}; font-size:1.5rem;">{hk_now.strftime("%H:%M")}</h2></div>', unsafe_allow_html=True)
+        st.markdown(f"""
+            <div style="display: flex; justify-content: space-between; gap: 20px; margin: 20px 0;">
+                <div class="metric-card" style="flex: 1; border-left-color: {accent}; margin: 0;">
+                    <h4>總分</h4>
+                    <h2 style="color: {accent} !important;">{total} / 40</h2>
+                </div>
+                <div class="metric-card" style="flex: 1; border-left-color: {accent}; margin: 0;">
+                    <h4>BMI 指數</h4>
+                    <h2 style="color: {accent} !important;">{bmi}</h2>
+                </div>
+                <div class="metric-card" style="flex: 1; border-left-color: {accent}; margin: 0;">
+                    <h4>時間 (HKT)</h4>
+                    <h2 style="color: {accent} !important; font-size: 2.2rem;">{hk_now.strftime("%H:%M")}</h2>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
 
         st.divider()
 
@@ -168,6 +181,7 @@ if data:
         st.balloons()
 else:
     st.error("找不到數據庫，請確認檔案路徑。")
+
 
 
 
